@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GUSTO — сервис скидок для ресторанов и кафе в Алматы</title>
+<meta name="description" content="GUSTO — единый абонемент на бизнес-ланчи: один QR-код — множество ресторанов и кафе Алматы. Тарифы от 9 990 ₸.">
+<meta name="theme-color" content="#0B0B0B">
+<meta name="color-scheme" content="dark light">
+<meta property="og:type" content="website">
+<meta property="og:title" content="GUSTO — сервис скидок для ресторанов и кафе">
+<meta property="og:description" content="Один абонемент, один QR-код — бизнес-ланч в ресторанах и кафе Алматы.">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/img/favicon-48.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair:opsz,wght@5..1200,400..900&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: { ink: '#0B0B0B', gold: { DEFAULT: '#D4AF37', hi: '#E8C964', lo: '#A5871F' }, graphite: '#292929' },
+        fontFamily: { display: ['Playfair', 'serif'], sans: ['Onest', 'system-ui', 'sans-serif'] }
+      }
+    }
+  };
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --black:#0B0B0B; --graphite:#292929; --graphite-2:#171717; --graphite-3:#202020;
+  --gold:#D4AF37; --gold-hi:#E8C964; --gold-lo:#A5871F; --gold-ink:#7C6210;
+  --white:#FFFFFF; --mist:#F3F2EF;
+  --soft-d:#BEBAAF; --soft-l:#54524B;
+  --gutter:clamp(18px,3.4vw,44px);
+  --sec:clamp(88px,11vw,184px);
+  --hdr:68px;
+  --r:28px;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  --f-d:"Playfair","Playfair Display","Times New Roman",serif;
+  --f-t:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --sh-gold:0 1px 0 rgba(255,240,180,.35) inset, 0 10px 22px -8px rgba(212,175,55,.5), 0 26px 50px -18px rgba(212,175,55,.32);
+  --sh-dark:0 2px 4px rgba(11,11,11,.2), 0 16px 34px -12px rgba(11,11,11,.5), 0 34px 70px -28px rgba(212,175,55,.2);
+}
+
+/* ============ BASE (no horizontal drift, no rubber-band) ============ */
+*,*::before,*::after{box-sizing:border-box}
+:where(h1,h2,h3,h4,p,figure,dl,dd,blockquote){margin:0}
+:where(ul,ol){margin:0; padding:0; list-style:none}
+:where(button){font:inherit; color:inherit; background:none; border:0; padding:0; cursor:pointer}
+:where(a){color:inherit; text-decoration:inherit}
+:where(img){display:block; max-width:100%; height:auto}
+:where(h1,h2,h3,h4){font-size:inherit; font-weight:inherit}
+html{
+  -webkit-text-size-adjust:100%; text-size-adjust:100%;
+  scroll-behavior:smooth; scroll-padding-top:calc(var(--hdr) + 12px);
+  background:var(--black);
+  overflow-x:hidden; overflow-x:clip;
+  overscroll-behavior:none;
+  touch-action:pan-y pinch-zoom;
+  scrollbar-color:var(--gold) var(--black); scrollbar-width:thin;
+}
+body.app{
+  margin:0; min-width:320px; max-width:100%;
+  background:var(--black); color:var(--white);
+  font-family:var(--f-t); font-size:1.0625rem; line-height:1.7;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; font-feature-settings:"lnum" 1; font-optical-sizing:auto;
+  overflow-x:hidden; overflow-x:clip;
+  overscroll-behavior:none;
+  -webkit-tap-highlight-color:transparent;
+}
+html.menu-open, html.menu-open body.app{overflow:hidden}
+img{max-width:100%}
+::selection{background:var(--gold); color:var(--black)}
+:focus-visible{outline:2px solid var(--gold); outline-offset:3px; border-radius:6px}
+.on-gold :focus-visible, .sec-light :focus-visible{outline-color:var(--black)}
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+.ic{width:1.15em; height:1.15em; flex:none; display:inline-block; vertical-align:middle}
+.skip{position:fixed; left:12px; top:-60px; z-index:100; background:var(--gold); color:var(--black); padding:12px 18px; border-radius:999px; font-weight:600; text-decoration:none; transition:transform .4s var(--ease)}
+.skip:focus{transform:translateY(72px)}
+
+.wrap{width:100%; max-width:1680px; margin-inline:auto; padding-inline:var(--gutter)}
+.grid12{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); column-gap:clamp(12px,2vw,28px)}
+
+/* grain + depth */
+.grain{position:relative; isolation:isolate}
+.grain::after{content:""; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.075;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.grain-l::after{opacity:.05; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.grain > *{position:relative; z-index:1}
+
+/* ============ TYPE ============ */
+.h2{font-family:var(--f-d); font-weight:600; font-size:clamp(2rem,1rem + 4.4vw,4.7rem); line-height:1.02; letter-spacing:-.03em; margin:0; text-wrap:balance; overflow-wrap:break-word}
+.h3{font-family:var(--f-d); font-weight:600; font-size:clamp(1.5rem,1.1rem + 1.6vw,2.5rem); line-height:1.08; letter-spacing:-.02em; margin:0; text-wrap:balance}
+.lead{font-size:clamp(1.0625rem,1rem + .35vw,1.3rem); line-height:1.65; max-width:48ch; margin:0}
+.soft{color:var(--soft-d)} .sec-light .soft{color:var(--soft-l)}
+.cur{font-weight:500; font-size:.66em; margin-left:.1em; letter-spacing:0}
+
+/* ============ BUTTONS ============ */
+.btn{--bg:var(--gold); --bg-hi:var(--gold-hi); --fg:var(--black); --sh:var(--sh-gold);
+  position:relative; isolation:isolate; display:inline-flex; align-items:center; justify-content:center; gap:.6em;
+  min-height:52px; padding:0 30px; border:0; border-radius:999px; color:var(--fg);
+  font:600 1rem/1 var(--f-t); letter-spacing:.01em; text-decoration:none; white-space:nowrap; cursor:pointer;
+  transition:transform .5s var(--ease)}
+.btn::before,.btn::after{content:""; position:absolute; inset:0; border-radius:inherit; z-index:-1}
+.btn::before{background:var(--bg)}
+.btn::after{background:var(--bg-hi); box-shadow:var(--sh); opacity:0; transition:opacity .35s var(--ease)}
+.btn .ic{transition:transform .45s var(--ease)}
+.btn:focus-visible::after{opacity:1}
+@media (hover:hover){.btn:hover{transform:translateY(-2px)} .btn:hover::after{opacity:1} .btn:hover .ic{transform:translateX(3px)}}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn-ghost{--bg:rgba(255,255,255,.12); --bg-hi:rgba(255,255,255,.22); --fg:var(--white); --sh:0 12px 30px -12px rgba(0,0,0,.5)}
+.btn-dark{--bg:var(--black); --bg-hi:var(--graphite); --fg:var(--white); --sh:var(--sh-dark)}
+.btn-block{width:100%; white-space:normal; text-align:center; line-height:1.25; padding-block:14px}
+
+/* ============ HEADER ============ */
+.hdr{position:fixed; inset:0 0 auto 0; z-index:50; height:var(--hdr); transform:translateZ(0)}
+.hdr::before,.hdr::after{content:""; position:absolute; inset:0; pointer-events:none; transition:opacity .4s var(--ease)}
+.hdr::before{background:var(--black); opacity:0}
+.hdr::after{background:linear-gradient(to bottom,rgba(11,11,11,.78),rgba(11,11,11,0)); opacity:1; height:calc(var(--hdr) + 24px)}
+.hdr.is-solid::before{opacity:1}
+.hdr.is-solid::after{opacity:0}
+.hdr-in{position:relative; z-index:1; height:100%; max-width:none; margin-inline:auto; padding-inline:var(--gutter); display:flex; align-items:center; justify-content:space-between; gap:14px}
+.brand{display:inline-flex; align-items:center; gap:10px; color:var(--white); text-decoration:none; min-height:44px}
+.brand-mark{height:42px; width:auto; display:block}
+.brand-word{font:700 1.55rem/1 var(--f-d); letter-spacing:.06em}
+.nav-d{display:none}
+.nav-d a{position:relative; display:inline-flex; align-items:center; min-height:44px; color:var(--white); text-decoration:none; font-weight:500; font-size:.95rem}
+.nav-d a::after{content:""; position:absolute; left:0; right:0; bottom:8px; height:2px; background:var(--gold); transform:scaleX(0); transform-origin:left; transition:transform .5s var(--ease)}
+@media (hover:hover){.nav-d a:hover::after{transform:scaleX(1)}}
+.nav-d a:focus-visible::after{transform:scaleX(1)}
+.hdr-r{display:flex; align-items:center; gap:10px}
+.hdr-cta{display:none; min-height:46px; padding:0 24px}
+.lang{display:inline-flex; padding:3px; border-radius:999px; background:rgba(255,255,255,.14)}
+.lang-b{min-width:44px; min-height:38px; padding:0 12px; border:0; border-radius:999px; background:transparent; color:var(--white); font:600 .82rem/1 var(--f-t); letter-spacing:.04em; cursor:pointer}
+.lang-b[aria-pressed="true"]{background:var(--gold); color:var(--black)}
+.icon-btn{width:46px; height:46px; display:grid; place-items:center; border:0; border-radius:50%; background:rgba(255,255,255,.14); color:var(--white); cursor:pointer; transition:transform .45s var(--ease)}
+.icon-btn .ic{width:22px; height:22px}
+@media (hover:hover){.icon-btn:hover{transform:scale(1.06)}}
+.icon-btn:active{transform:scale(.94)}
+@media (min-width:1024px){
+  .nav-d{display:flex; gap:clamp(16px,2.2vw,38px)}
+  .hdr-cta{display:inline-flex}
+  .icon-btn.burger{display:none}
+}
+
+/* ============ MOBILE MENU ============ */
+.menu{position:fixed; inset:0; z-index:60; display:flex; flex-direction:column; color:var(--white); overflow-y:auto; overscroll-behavior:contain;
+  background:radial-gradient(80% 50% at 100% 0%,rgba(212,175,55,.22),transparent 65%),radial-gradient(70% 50% at 0% 100%,rgba(212,175,55,.12),transparent 70%),var(--black);
+  opacity:0; visibility:hidden; transform:translateY(-12px);
+  transition:opacity .35s var(--ease), transform .55s var(--ease), visibility 0s linear .55s}
+.menu.open{opacity:1; visibility:visible; transform:none; transition:opacity .35s var(--ease), transform .55s var(--ease), visibility 0s}
+.menu-top{height:var(--hdr); flex:none; display:flex; align-items:center; justify-content:space-between; gap:14px; padding-inline:var(--gutter)}
+.menu-nav{flex:1; display:flex; flex-direction:column; justify-content:center; padding:20px var(--gutter)}
+.menu-nav a{display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:64px; padding:6px 0; color:var(--white); text-decoration:none;
+  font:600 clamp(2.2rem,9vw,3.4rem)/1.05 var(--f-d); letter-spacing:-.02em;
+  opacity:0; transform:translateY(18px); transition:opacity .5s var(--ease), transform .6s var(--ease); transition-delay:calc(var(--i) * 45ms)}
+.menu.open .menu-nav a{opacity:1; transform:none}
+.menu-nav a .ic{color:var(--gold); width:26px; height:26px}
+.menu-foot{flex:none; display:grid; gap:12px; padding:12px var(--gutter) calc(28px + env(safe-area-inset-bottom))}
+.menu-foot p{margin:6px 0 0; color:var(--soft-d); font-size:.95rem}
+
+/* ============ SECTIONS ============ */
+.sec{position:relative; padding-block:var(--sec); overflow-x:clip}
+.sec-dark{background:radial-gradient(60% 45% at 90% 0%,rgba(212,175,55,.13),transparent 70%),radial-gradient(50% 40% at 0% 100%,rgba(212,175,55,.07),transparent 70%),var(--black)}
+.sec-light{background:var(--white); color:var(--black)}
+.sec-graphite{background:radial-gradient(55% 45% at 0% 0%,rgba(212,175,55,.12),transparent 70%),var(--graphite)}
+
+/* image treatment: multiply tint + scrim */
+.tr{position:relative; overflow:hidden; margin:0; background:var(--graphite-2)}
+.tr img{display:block; width:100%; height:100%; object-fit:cover}
+.tr::before{content:""; position:absolute; inset:0; z-index:1; background:#8A6A14; mix-blend-mode:multiply; opacity:.2; pointer-events:none}
+.tr::after{content:""; position:absolute; inset:0; z-index:2; pointer-events:none; background:linear-gradient(to top,rgba(11,11,11,.55),rgba(11,11,11,0) 55%)}
+
+/* ============ HERO ============ */
+.hero .wrap,.foot .wrap{max-width:none}
+.hero{position:relative; display:flex; flex-direction:column; min-height:100svh; background:radial-gradient(60% 50% at 80% 0%,rgba(212,175,55,.16),transparent 70%),var(--black); padding-bottom:clamp(14px,2.2vw,30px); overflow-x:clip}
+.hero-ph{flex:1 1 0; display:grid; grid-template-columns:5fr 4fr 3fr; gap:6px; min-height:clamp(240px,36svh,420px); max-height:680px}
+.hero-ph .tr::after{background:linear-gradient(to bottom,rgba(11,11,11,.55),rgba(11,11,11,0) 32%,rgba(11,11,11,0) 55%,rgba(11,11,11,.7))}
+.ph-1 img{object-position:50% 38%} .ph-2 img{object-position:50% 40%} .ph-3 img{object-position:50% 14%}
+.hero-strip{display:grid; gap:22px; padding-top:clamp(22px,3vw,40px); align-items:end}
+.lede{margin:0; max-width:54ch; font-size:clamp(1.0625rem,1rem + .4vw,1.3rem); line-height:1.6}
+.hero-cta{display:flex; flex-wrap:wrap; gap:12px}
+.wm-row{padding-top:clamp(10px,2vw,28px)}
+.wm-h1{margin:0; overflow:hidden; line-height:1; font-weight:400; font-size:27vw}
+.wm{display:block; width:max-content; margin-inline:auto; font-family:var(--f-d); font-weight:700; font-size:1em; line-height:.68; letter-spacing:-.03em; color:var(--gold); will-change:transform}
+@media (min-width:900px){
+  .hero-strip{grid-template-columns:minmax(0,7fr) auto; gap:40px}
+  .hero-cta{justify-content:flex-end}
+}
+@media (max-width:699px){
+  .hero-ph{grid-template-columns:1fr 1fr}
+  .ph-3{display:none}
+  .hero-cta .btn{flex:1 1 100%}
+}
+
+/* ============ HOW + PASS ============ */
+.how-grid{align-items:start; row-gap:clamp(44px,6vw,80px)}
+.how-l{grid-column:1/-1}
+.how-r{grid-column:1/-1}
+.statement{margin:clamp(20px,2.4vw,32px) 0 0; max-width:32ch; font:600 clamp(1.5rem,1.1rem + 1.4vw,2.2rem)/1.2 var(--f-d); letter-spacing:-.02em; text-wrap:balance}
+.steps{list-style:none; margin:clamp(40px,6vw,84px) 0 0; padding:0; display:grid; gap:clamp(38px,5vw,68px)}
+.step{padding-left:calc(var(--i) * 3.4vw)}
+.step-t{margin:0; font:600 clamp(1.6rem,1rem + 2.3vw,3.1rem)/1.1 var(--f-d); letter-spacing:-.025em; text-wrap:balance}
+.step-p{margin:14px 0 0; max-width:38ch; color:var(--soft-l)}
+.step:last-child .step-t{color:var(--gold-ink)}
+@media (min-width:1024px){
+  .how-l{grid-column:1/8} .how-r{grid-column:9/13; position:sticky; top:calc(var(--hdr) + 28px)}
+  .step{padding-left:calc(var(--i) * clamp(0px,3.4vw,54px))}
+}
+.pass-wrap{display:grid; gap:16px; justify-items:center}
+.pass{position:relative; isolation:isolate; width:100%; max-width:420px; padding:24px; border-radius:34px; color:var(--white); overflow:hidden;
+  background:radial-gradient(120% 70% at 100% 0%,rgba(212,175,55,.30),transparent 60%),radial-gradient(90% 60% at 0% 100%,rgba(212,175,55,.15),transparent 65%),linear-gradient(160deg,#202020,#0B0B0B 62%);
+  box-shadow:0 2px 6px rgba(11,11,11,.2), 0 28px 60px -18px rgba(11,11,11,.55), 0 64px 110px -42px rgba(212,175,55,.4)}
+.pass::after{content:""; position:absolute; inset:0; z-index:-1; opacity:.07; pointer-events:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.pass-top{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.pass-brand{display:flex; align-items:center; gap:10px}
+.pass-brand img{height:38px; width:auto; display:block}
+.pass-brand b{font:700 1.35rem/1 var(--f-d); letter-spacing:.07em}
+.pass-demo{padding:6px 14px; border-radius:999px; background:var(--graphite); color:var(--soft-d); font-size:.82rem; font-weight:600}
+.pass-sub{margin:18px 0 0; color:var(--soft-d); font-size:.95rem}
+.qr-tile{background:var(--white); border-radius:24px; padding:14px; width:min(100%,264px); aspect-ratio:1; margin:16px auto 0; display:block; position:relative}
+.qr-tile svg{display:block; width:100%; height:100%}
+.qr-tile.pop{animation:qr-pop .6s var(--spring)}
+@keyframes qr-pop{0%{transform:scale(.94); opacity:.4} 100%{transform:none; opacity:1}}
+.pass-timer{display:flex; align-items:center; gap:14px; margin-top:18px; font-size:.9rem; color:var(--soft-d)}
+.bar{flex:1; height:6px; border-radius:99px; background:#303030; overflow:hidden}
+.bar i{display:block; height:100%; background:var(--gold); transform-origin:left center; animation:drain 30s linear forwards}
+@keyframes drain{from{transform:scaleX(1)} to{transform:scaleX(0)}}
+#timer{white-space:nowrap; font-variant-numeric:tabular-nums}
+.pass-left{margin:22px 0 0; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+.pass-left b{font:700 clamp(2.2rem,1.9rem + 1vw,2.7rem)/1 var(--f-d); letter-spacing:-.02em; color:var(--gold)}
+.pass-left span{color:var(--soft-d)}
+.pips{display:flex; flex-wrap:wrap; gap:6px; margin:14px 0 0}
+.pips i{width:12px; height:12px; border-radius:50%; background:#3A3A3A}
+.pips i.on{background:var(--gold)}
+.pass-meta{margin:14px 0 20px; color:var(--soft-d); font-size:.92rem}
+.pass-cap{margin:0; max-width:36ch; text-align:center; color:var(--soft-l); font-size:.92rem; line-height:1.55}
+
+/* ============ PLANS ============ */
+.plans-grid{row-gap:clamp(40px,6vw,72px); align-items:start}
+.plans-l,.calc{grid-column:1/-1}
+@media (min-width:1024px){.plans-l{grid-column:1/8} .calc{grid-column:9/13; position:sticky; top:calc(var(--hdr) + 28px)}}
+.plans-l .lead{margin-top:20px; color:var(--soft-d)}
+.plan-list{display:grid; gap:12px; margin-top:clamp(32px,4vw,52px)}
+.plan{position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"name price" "visits per"; align-items:baseline; gap:8px 20px; width:100%; margin:0; text-align:left;
+  padding:clamp(20px,2.6vw,32px) clamp(20px,3vw,38px); border:0; border-radius:26px; background:var(--graphite-2); color:var(--white); cursor:pointer; text-decoration:none; transition:transform .5s var(--ease)}
+@media (hover:hover){.plan:hover{transform:translateX(6px)}}
+.plan:active{transform:scale(.99)}
+.plan-name{grid-area:name; font:600 clamp(2rem,1.3rem + 2.4vw,3.3rem)/1 var(--f-d); letter-spacing:-.02em}
+.plan-price{grid-area:price; justify-self:end; font:600 clamp(1.7rem,1.1rem + 1.8vw,2.6rem)/1 var(--f-d); white-space:nowrap}
+.plan-visits{grid-area:visits; color:var(--soft-d); display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.plan-per{grid-area:per; justify-self:end; color:var(--soft-d); font-size:.95rem; text-align:right}
+.badge{font-style:normal; font-size:.78rem; font-weight:600; padding:3px 11px; border-radius:999px; background:var(--gold); color:var(--black)}
+.plan[aria-checked="true"]{background:var(--gold); color:var(--black)}
+.plan[aria-checked="true"] .plan-visits,.plan[aria-checked="true"] .plan-per{color:rgba(11,11,11,.78)}
+.plan[aria-checked="true"] .badge{background:var(--black); color:var(--white)}
+.plan-corp .plan-price{font-size:clamp(1.5rem,1.1rem + 1.4vw,2.1rem); display:flex; align-items:center; gap:10px}
+.plan-corp .plan-price .ic{color:var(--gold); width:26px; height:26px}
+.plan-corp .plan-per{display:none}
+@media (max-width:599px){.plan-corp{grid-template-areas:"name" "price" "visits"; grid-template-columns:minmax(0,1fr)} .plan-corp .plan-price{justify-self:start}}
+.plan-corp .plan-visits{grid-column:1/-1}
+.rules{margin:28px 0 0; max-width:62ch; color:var(--soft-d)}
+
+.calc{border-radius:32px; padding:clamp(24px,3vw,40px); background:var(--graphite); color:var(--white); box-shadow:0 2px 6px rgba(0,0,0,.3), 0 30px 60px -22px rgba(0,0,0,.6), 0 60px 100px -50px rgba(212,175,55,.28)}
+.calc-h{margin:0; font:600 clamp(1.7rem,1.4rem + .9vw,2.2rem)/1.1 var(--f-d); letter-spacing:-.02em}
+.calc-l{display:block; margin-top:26px; color:var(--soft-d); font-size:.95rem}
+.calc-avg{margin:6px 0 4px; font:600 2.4rem/1.1 var(--f-d)}
+input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:44px; background:transparent; cursor:pointer; margin:0; --p:50%}
+input[type=range]::-webkit-slider-runnable-track{height:6px; border-radius:99px; background:linear-gradient(to right,var(--gold) var(--p),#4a4a4a var(--p))}
+input[type=range]::-moz-range-track{height:6px; border-radius:99px; background:linear-gradient(to right,var(--gold) var(--p),#4a4a4a var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:28px; height:28px; margin-top:-11px; border-radius:50%; background:var(--gold); border:4px solid var(--black); box-shadow:0 4px 14px rgba(212,175,55,.5)}
+input[type=range]::-moz-range-thumb{width:20px; height:20px; border-radius:50%; background:var(--gold); border:4px solid var(--black); box-shadow:0 4px 14px rgba(212,175,55,.5)}
+.sec-light input[type=range]::-webkit-slider-runnable-track{background:linear-gradient(to right,var(--black) var(--p),#CFCDC6 var(--p))}
+.sec-light input[type=range]::-moz-range-track{background:linear-gradient(to right,var(--black) var(--p),#CFCDC6 var(--p))}
+.sec-light input[type=range]::-webkit-slider-thumb{background:var(--gold); border-color:var(--black)}
+.sec-light input[type=range]::-moz-range-thumb{background:var(--gold); border-color:var(--black)}
+.calc-rows{margin:14px 0 0; display:grid; gap:4px}
+.calc-rows div{display:flex; justify-content:space-between; gap:16px; padding:13px 16px; border-radius:14px}
+.calc-rows div:nth-child(odd){background:rgba(255,255,255,.06)}
+.calc-rows dt{color:var(--soft-d)} .calc-rows dd{margin:0; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap}
+.calc-ben{margin:22px 0 0}
+.calc-ben span{display:block; margin-top:4px; color:var(--soft-d); font-size:.95rem}
+.calc-ben strong{display:block; font:700 clamp(2.9rem,1.8rem + 3.4vw,4.6rem)/1.05 var(--f-d); letter-spacing:-.03em; color:var(--gold); font-variant-numeric:tabular-nums; white-space:nowrap}
+.calc-note{margin:10px 0 22px; min-height:3.4em; color:var(--soft-d); font-size:.95rem; line-height:1.55}
+
+/* ============ VENUES ============ */
+.venues-grid{row-gap:44px; align-items:center}
+.v-photos,.v-copy{grid-column:1/-1}
+@media (min-width:1024px){.v-photos{grid-column:1/7} .v-copy{grid-column:8/13}}
+.v-frame{position:relative; aspect-ratio:1/1; border-radius:var(--r); overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,.3), 0 40px 80px -30px rgba(0,0,0,.7)}
+.v-frame .tr{position:absolute; inset:0; border-radius:inherit; opacity:0; transition:opacity .8s var(--ease)}
+.v-frame .tr.on{opacity:1}
+.v-frame .tr.ph-premium img{object-position:50% 60%}
+.v-frame .tr.ph-elite img{object-position:50% 64%}
+.tabs{display:flex; flex-wrap:wrap; gap:8px; margin-top:clamp(26px,3vw,40px)}
+.tab{min-height:48px; padding:0 24px; border:0; border-radius:999px; background:rgba(255,255,255,.09); color:var(--soft-d); font:600 1rem/1 var(--f-t); cursor:pointer; transition:transform .45s var(--ease)}
+@media (hover:hover){.tab:hover{transform:translateY(-2px)}}
+.tab[aria-selected="true"]{background:var(--gold); color:var(--black)}
+.v-panel{margin-top:clamp(26px,3vw,40px)}
+.v-copy .h2{font-size:clamp(2rem,1rem + 3.2vw,3.9rem)}
+.v-panel .h3{font-size:clamp(1.5rem,1.1rem + 1.1vw,2.2rem)}
+.v-price{display:inline-block; margin:16px 0 0; padding:6px 16px; border-radius:999px; background:rgba(212,175,55,.16); color:var(--gold-hi); font-weight:600; font-size:.95rem}
+.v-desc{margin:16px 0 0; max-width:42ch; color:var(--soft-d)}
+.v-menu-h{margin:26px 0 8px; color:var(--soft-d); font-size:.95rem}
+.v-menu{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:6px 18px}
+.v-menu li{display:flex; align-items:center; gap:10px}
+.v-menu .ic{color:var(--gold)}
+.v-actions{display:grid; gap:10px; margin-top:clamp(28px,3.4vw,44px)}
+@media (min-width:600px){.v-actions{grid-template-columns:1fr 1fr}}
+.v-cell{display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:68px; padding:0 24px; border-radius:22px; text-decoration:none; font-weight:600; line-height:1.2; transition:transform .5s var(--ease)}
+@media (hover:hover){.v-cell:hover{transform:translateY(-3px)}}
+.v-cell:active{transform:scale(.98)}
+.v-cell-a{background:var(--gold); color:var(--black); box-shadow:var(--sh-gold)}
+.v-cell-b{background:var(--black); color:var(--white)}
+
+/* ============ BUSINESS ============ */
+.biz-grid{display:grid; gap:clamp(56px,7vw,96px); margin-top:clamp(40px,5vw,72px)}
+@media (min-width:1024px){.biz-grid{grid-template-columns:1fr 1fr; gap:clamp(32px,4vw,72px)}}
+.biz{display:flex; flex-direction:column; gap:20px; min-width:0}
+.biz .tr{aspect-ratio:16/10; border-radius:var(--r); box-shadow:0 2px 6px rgba(11,11,11,.12), 0 30px 60px -28px rgba(11,11,11,.5)}
+.biz .tr img{transform:scale(1.08)}
+.biz-rest .tr img{object-position:50% 55%}
+.biz p{margin:0; max-width:56ch; color:var(--soft-l)}
+.ticks{list-style:none; margin:4px 0 0; padding:0; display:grid; gap:10px}
+.ticks li{display:flex; gap:12px; align-items:flex-start}
+.ticks .ic{margin-top:.2em; color:var(--gold-ink); width:1.25em; height:1.25em}
+.biz .btn{align-self:flex-start; margin-top:8px}
+.rcalc{padding:clamp(20px,2.4vw,30px); border-radius:24px; background:var(--mist)}
+.rcalc-l{display:block; margin:0 0 8px; font-size:.95rem; color:var(--soft-l); font-weight:500}
+.rc-lv{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px}
+.rc-lv button{min-height:46px; padding:0 20px; border:0; border-radius:999px; background:#E4E2DC; color:var(--black); font:600 .98rem/1 var(--f-t); cursor:pointer; transition:transform .45s var(--ease)}
+@media (hover:hover){.rc-lv button:hover{transform:translateY(-2px)}}
+.rc-lv button[aria-checked="true"]{background:var(--black); color:var(--white)}
+.rc-n{display:flex; justify-content:space-between; align-items:baseline; gap:12px}
+.rc-n output{font:600 1.9rem/1 var(--f-d)}
+.rc-out{margin-top:14px}
+.rc-out span{display:block; margin-top:4px; font-size:.95rem; color:var(--soft-l)}
+.rc-out strong{display:block; font:700 clamp(2.4rem,1.7rem + 2.2vw,3.5rem)/1.05 var(--f-d); letter-spacing:-.03em; font-variant-numeric:tabular-nums; white-space:nowrap}
+.rc-out small{display:block; margin-top:8px; font-size:.9rem; color:var(--soft-l); line-height:1.5}
+
+/* ============ INSIDE ============ */
+.inside-grid{row-gap:clamp(36px,5vw,64px); align-items:start}
+.inside-h{grid-column:1/-1}
+.inside-lists{grid-column:1/-1; display:grid; gap:clamp(36px,4vw,56px) clamp(20px,3vw,48px)}
+@media (min-width:640px){.inside-lists{grid-template-columns:1fr 1fr}}
+.inside-ph{grid-column:1/-1; aspect-ratio:4/3; border-radius:var(--r)}
+.inside-ph img{object-position:50% 40%}
+@media (min-width:1024px){.inside-lists{grid-column:1/9} .inside-ph{grid-column:9/13; aspect-ratio:auto; min-height:100%; align-self:stretch}}
+.grp h3{margin:0 0 14px; font:600 clamp(1.7rem,1.4rem + .9vw,2.2rem)/1.1 var(--f-d); letter-spacing:-.02em; color:var(--gold)}
+.grp ul{list-style:none; margin:0; padding:0; display:grid; gap:4px; line-height:1.5}
+.grp li{padding:5px 0}
+
+/* ============ FAQ ============ */
+.faq-h{margin-bottom:clamp(36px,5vw,72px)}
+.qa{padding-block:clamp(26px,3.4vw,48px); row-gap:12px; align-items:start}
+.q{grid-column:1/-1; margin:0; font:600 clamp(1.45rem,1rem + 1.4vw,2.15rem)/1.15 var(--f-d); letter-spacing:-.02em; text-wrap:balance}
+.a{grid-column:1/-1; margin:0; max-width:54ch; color:var(--soft-l)}
+@media (min-width:900px){.q{grid-column:1/8} .a{grid-column:8/13; padding-top:.5em}}
+
+/* ============ CTA ============ */
+.cta{position:relative; isolation:isolate; color:var(--black); min-height:min(92svh,980px); display:flex; flex-direction:column; justify-content:space-between; gap:clamp(48px,7vw,96px);
+  padding:calc(var(--hdr) + clamp(36px,5vw,72px)) 0 clamp(32px,4vw,56px); overflow-x:clip;
+  background:radial-gradient(70% 60% at 10% 8%,#F2D977 0%,transparent 62%),radial-gradient(60% 70% at 100% 100%,#B38F1E 0%,transparent 66%),var(--gold)}
+.cta-h{margin:0; font:700 clamp(2.1rem,12vw,4.2rem)/1.02 var(--f-d); letter-spacing:-.04em; text-wrap:balance}
+.cta-h span{display:block}
+@media (min-width:700px){.cta-h{font-size:clamp(4rem,9.2vw,8.4rem); line-height:1}}
+@media (max-width:699px){.cta{min-height:min(70svh,640px)}}
+.cta-row{display:grid; gap:24px; align-items:end}
+.cta-row p{margin:0; max-width:40ch; font-size:clamp(1.1rem,1rem + .5vw,1.4rem); line-height:1.55; font-weight:500}
+.cta-btns{display:flex; flex-wrap:wrap; gap:12px; align-items:center}
+.cta-tel{display:inline-flex; align-items:center; gap:10px; min-height:52px; padding:0 8px; color:var(--black); text-decoration:none; font-weight:600; font-size:1.1rem}
+.cta-tel span{position:relative}
+.cta-tel span::after{content:""; position:absolute; left:0; right:0; bottom:-3px; height:2px; background:var(--black); transform-origin:left; transition:transform .5s var(--ease)}
+@media (hover:hover){.cta-tel:hover span::after{transform:scaleX(.35)}}
+@media (min-width:900px){.cta-row{grid-template-columns:minmax(0,1fr) auto; gap:48px; padding-right:calc(var(--gutter) + 92px)}}
+@media (max-width:599px){.cta-btns .btn{flex:1 1 100%}}
+
+/* ============ FOOTER ============ */
+.foot{position:relative; background:var(--black); color:var(--white); padding:clamp(56px,7vw,112px) 0 calc(28px + env(safe-area-inset-bottom)); overflow-x:clip}
+.foot-cols{display:grid; grid-template-columns:1fr 1fr; gap:36px 24px}
+@media (min-width:900px){.foot-cols{grid-template-columns:1.3fr 1fr 1.2fr 1fr}}
+.foot h2{margin:0 0 14px; font:600 1.05rem/1.3 var(--f-t); color:var(--white)}
+.foot ul{list-style:none; margin:0; padding:0; display:grid; gap:2px}
+.foot li,.foot a.fl{color:var(--soft-d); font-size:1rem; line-height:1.5}
+.foot a.fl{display:inline-flex; align-items:center; min-height:40px; text-decoration:none; transition:transform .45s var(--ease)}
+@media (hover:hover){.foot a.fl:hover{transform:translateX(4px); color:var(--white)}}
+.foot li.t{padding:5px 0}
+.foot-tag{margin:0; max-width:30ch; color:var(--soft-d)}
+.foot-brand{display:flex; align-items:center; gap:10px; margin-bottom:16px}
+.foot-brand img{height:44px; width:auto}
+.foot-wm-row{margin-top:clamp(56px,9vw,140px)}
+.foot-legal{margin:clamp(14px,2vw,26px) 0 0; color:var(--soft-d); font-size:.9rem; padding-bottom:84px}
+@media (min-width:900px){.foot-legal{padding-bottom:8px}}
+
+/* ============ WHATSAPP FAB ============ */
+.wa{position:fixed; right:calc(22px + env(safe-area-inset-right)); bottom:calc(22px + env(safe-area-inset-bottom)); z-index:45; width:62px; height:62px; display:grid; place-items:center; border-radius:50%; text-decoration:none}
+.wa-core{position:relative; z-index:2; width:62px; height:62px; display:grid; place-items:center; border-radius:50%; background:#25D366; color:#fff;
+  box-shadow:0 0 0 3px var(--black), 0 0 0 5px var(--gold), 0 10px 22px -4px rgba(37,211,102,.55), 0 22px 40px -10px rgba(212,175,55,.5);
+  transform-origin:50% 62%; animation:wa-shake 5.5s var(--ease) infinite; transition:transform .45s var(--spring)}
+@media (hover:hover){.wa:hover .wa-core{transform:scale(1.08)}}
+.wa:active .wa-core{transform:scale(.94)}
+.wa-core svg{width:32px; height:32px; fill:currentColor}
+.wa-ring{position:absolute; inset:0; z-index:1; border-radius:50%; opacity:0; pointer-events:none; animation:wa-ring 2.9s cubic-bezier(.2,.6,.3,1) infinite}
+.wa-ring.r1{background:rgba(37,211,102,.6)}
+.wa-ring.r2{background:rgba(212,175,55,.7); animation-delay:.97s}
+.wa-ring.r3{background:rgba(37,211,102,.5); animation-delay:1.94s}
+@keyframes wa-ring{0%{transform:scale(1); opacity:.75} 65%{opacity:.2} 100%{transform:scale(1.95); opacity:0}}
+@keyframes wa-shake{0%,84%,100%{transform:rotate(0)} 86%{transform:rotate(-13deg)} 88%{transform:rotate(11deg)} 90%{transform:rotate(-8deg)} 92%{transform:rotate(6deg)} 94%{transform:rotate(-3deg)} 96%{transform:rotate(1deg)}}
+.wa-tip{position:absolute; right:78px; top:50%; padding:10px 16px; border-radius:999px; background:var(--black); color:var(--white); font-size:.9rem; font-weight:600; white-space:nowrap; opacity:0; transform:translate(10px,-50%); pointer-events:none; transition:opacity .35s var(--ease), transform .5s var(--ease)}
+@media (hover:hover){.wa:hover .wa-tip,.wa:focus-visible .wa-tip{opacity:1; transform:translate(0,-50%)}}
+
+/* lining figures: the `font` shorthand above resets feature settings, so they are restored here, after it */
+.brand-word,.statement,.step-t,.pass-brand b,.pass-left b,.plan-name,.plan-price,.calc-h,.calc-avg,.calc-ben strong,.rc-n output,.rc-out strong,.q,.grp h3,.cta-h,.menu-nav a,.wm{font-feature-settings:"lnum" 1}
+
+/* ============ MOTION STATE ============ */
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; transition-delay:0s !important}
+  .wa-ring{display:none}
+}
+</style>
+</head>
+
+<body class="app">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h3.5l1.6 4.1-2.1 1.6a11.2 11.2 0 005.3 5.3l1.6-2.1 4.1 1.6V18a2 2 0 01-2 2A15 15 0 013 6a2 2 0 012-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></symbol>
+</svg>
+
+<a class="skip" href="#main" data-i18n="skip">К содержимому</a>
+
+<!-- ============ HEADER ============ -->
+<header class="hdr" id="hdr">
+  <div class="hdr-in">
+    <a class="brand" href="#top" aria-label="GUSTO">
+      <img class="brand-mark" src="assets/img/logo.png" width="34" height="42" alt="">
+      <span class="brand-word">GUSTO</span>
+    </a>
+    <nav class="nav-d" aria-label="Главное меню" data-i18n-attr="aria-label:nav.label">
+      <a href="#how" data-i18n="nav.how">Как это работает</a>
+      <a href="#plans" data-i18n="nav.plans">Тарифы</a>
+      <a href="#venues" data-i18n="nav.venues">Заведения</a>
+      <a href="#business" data-i18n="nav.business">Бизнесу</a>
+      <a href="#faq" data-i18n="nav.faq">Вопросы</a>
+    </nav>
+    <div class="hdr-r">
+      <div class="lang" role="group" aria-label="Язык" data-i18n-attr="aria-label:lang.label">
+        <button type="button" class="lang-b touch-manipulation" data-lang="ru" aria-pressed="true">RU</button>
+        <button type="button" class="lang-b touch-manipulation" data-lang="kk" aria-pressed="false" lang="kk">ҚАЗ</button>
+      </div>
+      <a class="btn hdr-cta" href="#contact" data-i18n="nav.cta">Подключиться</a>
+      <button type="button" class="icon-btn burger touch-manipulation" id="burger" aria-expanded="false" aria-controls="menu" aria-label="Открыть меню" data-i18n-attr="aria-label:menu.open">
+        <svg class="ic" aria-hidden="true" focusable="false"><use href="#i-menu"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ MOBILE MENU ============ -->
+<div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Меню" data-i18n-attr="aria-label:menu.label" aria-hidden="true">
+  <div class="menu-top">
+    <a class="brand" href="#top" data-close aria-label="GUSTO">
+      <img class="brand-mark" src="assets/img/logo.png" width="34" height="42" alt="">
+      <span class="brand-word">GUSTO</span>
+    </a>
+    <div class="hdr-r">
+      <div class="lang" role="group" aria-label="Язык" data-i18n-attr="aria-label:lang.label">
+        <button type="button" class="lang-b touch-manipulation" data-lang="ru" aria-pressed="true">RU</button>
+        <button type="button" class="lang-b touch-manipulation" data-lang="kk" aria-pressed="false" lang="kk">ҚАЗ</button>
+      </div>
+      <button type="button" class="icon-btn touch-manipulation" id="menuClose" aria-label="Закрыть меню" data-i18n-attr="aria-label:menu.close">
+        <svg class="ic" aria-hidden="true" focusable="false"><use href="#i-close"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="menu-nav" aria-label="Главное меню" data-i18n-attr="aria-label:nav.label">
+    <a href="#how" data-close style="--i:1"><span data-i18n="nav.how">Как это работает</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="#plans" data-close style="--i:2"><span data-i18n="nav.plans">Тарифы</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="#venues" data-close style="--i:3"><span data-i18n="nav.venues">Заведения</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="#business" data-close style="--i:4"><span data-i18n="nav.business">Бизнесу</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    <a href="#faq" data-close style="--i:5"><span data-i18n="nav.faq">Вопросы</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </nav>
+  <div class="menu-foot">
+    <a class="btn btn-block" data-wa="wa.generic" href="https://wa.me/77770464141" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-wa"/></svg><span data-i18n="cta.btn1">Написать в WhatsApp</span></a>
+    <a class="btn btn-ghost btn-block" href="tel:+77770464141"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>+7 777 046 4141</span></a>
+    <p data-i18n="foot.tag">Сервис скидок для ресторанов и кафе</p>
+  </div>
+</div>
+
+<main id="main">
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="hero-ph">
+    <figure class="tr ph-1"><img src="assets/img/terrace.webp" width="1080" height="1350" alt="Терраса с плетёной мебелью, бирюзовыми подушками и плетёными светильниками" data-i18n-attr="alt:img.terrace" fetchpriority="high" decoding="async"></figure>
+    <figure class="tr ph-2"><img src="assets/img/hall-gold.webp" width="736" height="736" alt="Зал ресторана с тёплым золотым светом и подвесными светильниками" data-i18n-attr="alt:img.hall" fetchpriority="high" decoding="async"></figure>
+    <figure class="tr ph-3"><img src="assets/img/taraz.webp" width="736" height="981" alt="Зал с потолком в казахском орнаменте" data-i18n-attr="alt:img.taraz" decoding="async"></figure>
+  </div>
+  <div class="wrap hero-strip">
+    <p class="lede" data-i18n="hero.lede">GUSTO — сервис скидок для ресторанов и кафе. Один абонемент, один QR-код — и бизнес-ланч в подключённых заведениях Алматы.</p>
+    <div class="hero-cta">
+      <a class="btn" href="#plans"><span data-i18n="hero.cta1">Выбрать тариф</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <a class="btn btn-ghost" href="#how" data-i18n="hero.cta2">Как это работает</a>
+    </div>
+  </div>
+  <div class="wrap wm-row">
+    <h1 class="wm-h1"><span class="wm" id="wm" aria-hidden="true">GUSTO</span><span class="sr-only" data-i18n="hero.h1">GUSTO — сервис скидок для ресторанов и кафе</span></h1>
+  </div>
+</section>
+
+<!-- ============ HOW + LIVE PASS ============ -->
+<section class="sec sec-light grain grain-l" id="how" aria-labelledby="how-h">
+  <div class="wrap grid12 how-grid">
+    <div class="how-l">
+      <h2 class="h2" id="how-h" data-i18n="how.h" data-reveal>Как это работает</h2>
+      <p class="statement" data-i18n="how.lead" data-reveal>Подписку вы оплачиваете раз в месяц. Дальше достаточно показать QR-код.</p>
+      <ol class="steps">
+        <li class="step" style="--i:0" data-reveal>
+          <h3 class="step-t" data-i18n="s1.t">Выберите тариф.</h3>
+          <p class="step-p" data-i18n="s1.p">От 6 до 20 ланчей в месяц. Оплата банковской картой, а где доступно — через Apple Pay и Google Pay.</p>
+        </li>
+        <li class="step" style="--i:1" data-reveal>
+          <h3 class="step-t" data-i18n="s2.t">Найдите заведение.</h3>
+          <p class="step-p" data-i18n="s2.p">Карта и фильтры по кухне, рейтингу и расстоянию. В меню GUSTO — суп, горячее, салат и напиток.</p>
+        </li>
+        <li class="step" style="--i:2" data-reveal>
+          <h3 class="step-t" data-i18n="s3.t">Нажмите «Получить ланч».</h3>
+          <p class="step-p" data-i18n="s3.p">Приложение создаёт временный одноразовый QR-код. Он быстро обновляется, поэтому скриншот не сработает.</p>
+        </li>
+        <li class="step" style="--i:3" data-reveal>
+          <h3 class="step-t" data-i18n="s4.t">Покажите QR — и приятного аппетита.</h3>
+          <p class="step-p" data-i18n="s4.p">Сотрудник сканирует код и подтверждает выдачу. Ланч списывается с остатка — на экране «Осталось: 7/12».</p>
+        </li>
+      </ol>
+    </div>
+    <aside class="how-r pass-wrap" data-reveal>
+      <div class="pass" id="pass">
+        <div class="pass-top">
+          <div class="pass-brand"><img src="assets/img/logo.png" width="30" height="38" alt=""><b>GUSTO</b></div>
+          <span class="pass-demo" data-i18n="pass.demo">Демо</span>
+        </div>
+        <p class="pass-sub" data-i18n="pass.sub">Абонемент LUNCH</p>
+        <div class="qr-tile" id="qrTile"><svg id="qr" viewBox="0 0 33 33" role="img" aria-label="Демонстрационный динамический QR-код" data-i18n-attr="aria-label:pass.qrlabel" shape-rendering="crispEdges"></svg></div>
+        <div class="pass-timer"><div class="bar" aria-hidden="true"><i id="bar"></i></div><span id="timer">Обновится через 0:30</span></div>
+        <p class="pass-left"><b id="left">8/12</b><span id="leftLab">Осталось: 8/12 ланчей</span></p>
+        <div class="pips" id="pips" aria-hidden="true"></div>
+        <p class="pass-meta" data-i18n="pass.valid">Действует до 05.11.2026</p>
+        <button type="button" class="btn btn-block" id="getLunch"><span data-i18n="pass.btn">Получить ланч</span></button>
+        <span class="sr-only" id="passNote" aria-live="polite"></span>
+      </div>
+      <p class="pass-cap" data-i18n="pass.cap">Так выглядит пропуск в приложении. Код демонстрационный и обновляется каждые 30 секунд.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ PLANS ============ -->
+<section class="sec sec-dark grain" id="plans" aria-labelledby="plans-h">
+  <div class="wrap grid12 plans-grid">
+    <div class="plans-l">
+      <h2 class="h2" id="plans-h" data-i18n="plans.h" data-reveal>Тарифы</h2>
+      <p class="lead" data-i18n="plans.lead" data-reveal>Выберите тариф — и сразу увидите, сколько сэкономите.</p>
+      <div class="plan-list" role="radiogroup" aria-label="Выбор тарифа" data-i18n-attr="aria-label:plans.group" id="planList">
+        <button type="button" class="plan" role="radio" aria-checked="false" tabindex="-1" data-plan="MINI">
+          <span class="plan-name">MINI</span><span class="plan-price" data-price>9 990<span class="cur">₸</span></span>
+          <span class="plan-visits" data-visits>6 ланчей в месяц</span><span class="plan-per" data-per>≈ 1 665 ₸ за ланч</span>
+        </button>
+        <button type="button" class="plan" role="radio" aria-checked="true" tabindex="0" data-plan="LUNCH">
+          <span class="plan-name">LUNCH</span><span class="plan-price" data-price>19 990<span class="cur">₸</span></span>
+          <span class="plan-visits"><span data-visits>12 ланчей в месяц</span><em class="badge" data-i18n="plan.main">Основной</em></span><span class="plan-per" data-per>≈ 1 666 ₸ за ланч</span>
+        </button>
+        <button type="button" class="plan" role="radio" aria-checked="false" tabindex="-1" data-plan="PRO">
+          <span class="plan-name">PRO</span><span class="plan-price" data-price>29 990<span class="cur">₸</span></span>
+          <span class="plan-visits" data-visits>20 ланчей в месяц</span><span class="plan-per" data-per>≈ 1 500 ₸ за ланч</span>
+        </button>
+        <a class="plan plan-corp" href="#business">
+          <span class="plan-name">CORPORATE</span>
+          <span class="plan-price"><span data-i18n="plan.corp.price">Индивидуально</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+          <span class="plan-visits" data-i18n="plan.corp.note">Для компаний: сотрудники, лимиты, отчёты</span>
+        </a>
+      </div>
+      <p class="rules" data-i18n="plans.rules">Срок действия — 30 дней. Один основной ланч в день. В ланч входят суп, горячее, салат и напиток.</p>
+    </div>
+
+    <div class="calc" id="calc" data-reveal>
+      <h3 class="calc-h text-balance" data-i18n="calc.h">Ваша выгода</h3>
+      <label class="calc-l" for="avg" data-i18n="calc.avg">Средняя цена обычного ланча</label>
+      <div class="calc-avg"><output id="avgOut" for="avg">2 320<span class="cur">₸</span></output></div>
+      <input type="range" id="avg" min="1500" max="4500" step="10" value="2320">
+      <dl class="calc-rows">
+        <div><dt data-i18n="calc.sub">Стоимость подписки</dt><dd id="cSub">19 990 ₸</dd></div>
+        <div><dt data-i18n="calc.food">Полученная стоимость еды</dt><dd id="cFood">27 840 ₸</dd></div>
+      </dl>
+      <p class="calc-ben"><strong class="tabular-nums" id="cBen">7 850 ₸</strong><span data-i18n="calc.ben">Ваша выгода</span></p>
+      <p class="calc-note" id="cNote" aria-live="polite"></p>
+      <a class="btn btn-block" id="cCta" href="https://wa.me/77770464141" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-wa"/></svg><span id="cCtaT">Подключить LUNCH в WhatsApp</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VENUES ============ -->
+<section class="sec sec-graphite grain" id="venues" aria-labelledby="venues-h">
+  <div class="wrap grid12 venues-grid">
+    <div class="v-photos" data-reveal>
+      <div class="v-frame">
+        <figure class="tr ph-standard on"><img src="assets/img/canteen.webp" width="900" height="1200" alt="Гости обедают в просторном светлом зале" data-i18n-attr="alt:img.canteen" loading="lazy" decoding="async"></figure>
+        <figure class="tr ph-premium"><img src="assets/img/garden.webp" width="736" height="1104" alt="Ресторан с панорамными окнами в сад" data-i18n-attr="alt:img.garden" loading="lazy" decoding="async"></figure>
+        <figure class="tr ph-elite"><img src="assets/img/velvet.webp" width="736" height="1312" alt="Ресторан с синими бархатными креслами и мраморным полом" data-i18n-attr="alt:img.velvet" loading="lazy" decoding="async"></figure>
+      </div>
+    </div>
+    <div class="v-copy">
+      <h2 class="h2" id="venues-h" data-i18n="venues.h" data-reveal>Заведения на любой вкус</h2>
+      <div class="tabs" role="tablist" aria-label="Уровень заведения" data-i18n-attr="aria-label:venues.tabs" data-reveal>
+        <button type="button" class="tab" role="tab" id="tab-std" aria-selected="true" aria-controls="vPanel" tabindex="0" data-tier="std">Standard</button>
+        <button type="button" class="tab" role="tab" id="tab-pre" aria-selected="false" aria-controls="vPanel" tabindex="-1" data-tier="pre">Premium</button>
+        <button type="button" class="tab" role="tab" id="tab-eli" aria-selected="false" aria-controls="vPanel" tabindex="-1" data-tier="eli">Elite</button>
+      </div>
+      <div class="v-panel" id="vPanel" role="tabpanel" aria-labelledby="tab-std" aria-live="polite">
+        <h3 class="h3" id="vTitle">Обычные рестораны и кафе</h3>
+        <p class="v-desc" id="vDesc">Бизнес-ланч полностью входит в подписку. Никаких доплат.</p>
+        <span class="v-price" id="vPrice">Входит в подписку</span>
+        <p class="v-menu-h" data-i18n="v.menu.h">В бизнес-ланч входит</p>
+        <ul class="v-menu">
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="v.m1">Суп</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="v.m2">Горячее</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="v.m3">Салат</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="v.m4">Напиток</span></li>
+        </ul>
+      </div>
+      <div class="v-actions">
+        <a class="v-cell v-cell-a" href="#plans"><span data-i18n="v.cta1">Выбрать тариф</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="v-cell v-cell-b" href="#business"><span data-i18n="v.cta2">Подключить заведение</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BUSINESS ============ -->
+<section class="sec sec-light grain grain-l" id="business" aria-labelledby="biz-h">
+  <div class="wrap">
+    <h2 class="h2" id="biz-h" data-i18n="biz.h" data-reveal>Для заведений и компаний</h2>
+    <div class="biz-grid">
+      <article class="biz biz-rest" data-reveal>
+        <figure class="tr"><img src="assets/img/palms.webp" width="736" height="552" alt="Просторный зал ресторана с пальмами и светлыми арками" data-i18n-attr="alt:img.palms" loading="lazy" decoding="async"></figure>
+        <h3 class="h3" data-i18n="rest.t">Заведениям: новые гости</h3>
+        <p data-i18n="rest.p">Подключитесь, создайте меню GUSTO и принимайте гостей по QR. За каждый подтверждённый ланч вы получаете выплату по своей ставке.</p>
+        <div class="rcalc" id="rcalc">
+          <span class="rcalc-l" data-i18n="rcalc.l">Уровень заведения</span>
+          <div class="rc-lv" role="radiogroup" aria-label="Уровень заведения" data-i18n-attr="aria-label:rcalc.l">
+            <button type="button" role="radio" aria-checked="true" tabindex="0" data-rate="1100">Standard</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-rate="1500">Premium</button>
+            <button type="button" role="radio" aria-checked="false" tabindex="-1" data-rate="2000">Elite</button>
+          </div>
+          <div class="rc-n"><label class="rcalc-l" for="cnt" data-i18n="rcalc.n" style="margin:0">Подтверждённых ланчей в месяц</label><output id="cntOut" for="cnt">100</output></div>
+          <input type="range" id="cnt" min="10" max="1000" step="10" value="100">
+          <div class="rc-out"><strong id="rcSum">110 000 ₸</strong><span data-i18n="rcalc.out">Выплата за месяц</span><small id="rcForm">100 × 1 100 ₸</small><small data-i18n="rcalc.note">Пример расчёта: ставка зависит от уровня заведения и согласуется индивидуально.</small></div>
+        </div>
+        <ul class="ticks">
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="rest.b1">Кабинет заведения со статистикой</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="rest.b2">Сканер QR для сотрудников</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="rest.b3">Прозрачные начисления и отчёты</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="rest.b4">Допродажи: кофе, десерты, премиум-блюда</span></li>
+        </ul>
+        <a class="btn btn-dark" data-wa="wa.rest" href="https://wa.me/77770464141" target="_blank" rel="noopener"><span data-i18n="rest.cta">Подключить заведение</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </article>
+
+      <article class="biz biz-corp" data-reveal>
+        <figure class="tr"><img src="assets/img/tower.webp" width="750" height="499" alt="Современный ресторан с панорамными окнами на город" data-i18n-attr="alt:img.tower" loading="lazy" decoding="async"></figure>
+        <h3 class="h3" data-i18n="corp.t">Компаниям: питание сотрудников</h3>
+        <p data-i18n="corp.p">Компания оплачивает GUSTO, а каждый сотрудник получает свои ланчи. Например, 500 сотрудников — по 20 ланчей каждому.</p>
+        <ul class="ticks">
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="corp.b1">Рабочие дни и время, например Пн–Пт, 11:30–15:30</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="corp.b2">Список заведений для сотрудников</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="corp.b3">Бюджет на сотрудника и лимиты ланчей</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span data-i18n="corp.b4">Отчёты и история расходов</span></li>
+        </ul>
+        <a class="btn btn-dark" data-wa="wa.corp" href="https://wa.me/77770464141" target="_blank" rel="noopener"><span data-i18n="corp.cta">Обсудить для компании</span><svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INSIDE ============ -->
+<section class="sec sec-dark grain" id="inside" aria-labelledby="inside-h">
+  <div class="wrap grid12 inside-grid">
+    <h2 class="h2 inside-h" id="inside-h" data-i18n="inside.h" data-reveal>Всё нужное — внутри</h2>
+    <div class="inside-lists" data-reveal>
+      <div class="grp"><h3 data-i18n="g1.h">Гостям</h3><ul>
+        <li data-i18n="g1.i1">Карта заведений</li><li data-i18n="g1.i2">Меню GUSTO</li><li data-i18n="g1.i3">Динамический QR</li><li data-i18n="g1.i4">Остаток ланчей</li><li data-i18n="g1.i5">История посещений</li><li data-i18n="g1.i6">Счётчик экономии</li><li data-i18n="g1.i7">Избранное</li><li data-i18n="g1.i8">Отзывы и рейтинг</li><li data-i18n="g1.i9">Реферальные бонусы</li></ul></div>
+      <div class="grp"><h3 data-i18n="g2.h">Заведениям</h3><ul>
+        <li data-i18n="g2.i1">Кабинет заведения</li><li data-i18n="g2.i2">Сканер QR</li><li data-i18n="g2.i3">Меню GUSTO</li><li data-i18n="g2.i4">Статистика по гостям</li><li data-i18n="g2.i5">Начисления и выплаты</li><li data-i18n="g2.i6">Допродажи</li><li data-i18n="g2.i7">Отзывы гостей</li></ul></div>
+      <div class="grp"><h3 data-i18n="g3.h">Компаниям</h3><ul>
+        <li data-i18n="g3.i1">Сотрудники</li><li data-i18n="g3.i2">Лимиты и бюджет</li><li data-i18n="g3.i3">Покупка подписок</li><li data-i18n="g3.i4">Отчёты</li><li data-i18n="g3.i5">История расходов</li></ul></div>
+      <div class="grp"><h3 data-i18n="g4.h">Защита</h3><ul>
+        <li data-i18n="g4.i1">Одноразовый QR</li><li data-i18n="g4.i2">Быстрое обновление кода</li><li data-i18n="g4.i3">Проверка на сервере</li><li data-i18n="g4.i4">Геолокация</li><li data-i18n="g4.i5">Антифрод</li><li data-i18n="g4.i6">Журнал действий</li></ul></div>
+    </div>
+    <figure class="tr inside-ph" data-reveal><img src="assets/img/mural.webp" width="736" height="1308" alt="Кафе с арочными нишами, росписью на стене и плетёными светильниками" data-i18n-attr="alt:img.mural" loading="lazy" decoding="async"></figure>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="sec sec-light grain grain-l" id="faq" aria-labelledby="faq-h">
+  <div class="wrap">
+    <h2 class="h2 faq-h" id="faq-h" data-i18n="faq.h" data-reveal>Вопросы и ответы</h2>
+    <div class="qa grid12" data-reveal><h3 class="q" data-i18n="q1">Как работает GUSTO?</h3><p class="a" data-i18n="a1">Вы покупаете месячную подписку и получаете определённое количество бизнес-ланчей. В подключённом заведении нажимаете «Получить ланч», показываете одноразовый QR-код, и сотрудник выдаёт обед.</p></div>
+    <div class="qa grid12" data-reveal><h3 class="q" data-i18n="q2">Сколько ланчей можно получить в день?</h3><p class="a" data-i18n="a2">Основное правило — один ланч в день. Остаток по подписке всегда виден на главном экране, например «Осталось: 8/12».</p></div>
+    <div class="qa grid12" data-reveal><h3 class="q" data-i18n="q3">Что будет с неиспользованными ланчами?</h3><p class="a" data-i18n="a3">Перенос неиспользованных ланчей зависит от условий тарифа. Эти условия указаны в описании тарифа до оплаты.</p></div>
+    <div class="qa grid12" data-reveal><h3 class="q" data-i18n="q4">Можно ли отключить автопродление?</h3><p class="a" data-i18n="a4">Да. Автопродление подключается только с вашего явного согласия, а отключить его можно в разделе «Подписка» в приложении.</p></div>
+    <div class="qa grid12" data-reveal><h3 class="q" data-i18n="q5">Безопасна ли оплата и возможен ли возврат?</h3><p class="a" data-i18n="a5">Оплата проходит через платёжного провайдера по его официальному API, данные банковских карт на серверах GUSTO не хранятся. Правила возврата соответствуют законодательству Республики Казахстан.</p></div>
+    <div class="qa grid12" data-reveal><h3 class="q" data-i18n="q6">В каких городах работает GUSTO?</h3><p class="a" data-i18n="a6">Первый запуск — Алматы. Затем планируются Астана, Шымкент и другие города Казахстана.</p></div>
+    <div class="qa grid12" data-reveal><h3 class="q" data-i18n="q7">Как подключить заведение или компанию?</h3><p class="a" data-i18n="a7">Напишите нам в WhatsApp или позвоните по номеру +7 777 046 4141. Мы подключим заведение, поможем создать меню GUSTO и расскажем, как принимать гостей по QR.</p></div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta on-gold grain grain-l" id="contact" aria-labelledby="cta-h">
+  <div class="wrap">
+    <h2 class="cta-h" id="cta-h" data-reveal><span data-i18n="cta.h1">Покажите QR —</span><span data-i18n="cta.h2">обед оплачен.</span></h2>
+  </div>
+  <div class="wrap cta-row" data-reveal>
+    <p data-i18n="cta.p">Напишите нам — поможем выбрать тариф, подключить заведение или компанию.</p>
+    <div class="cta-btns">
+      <a class="btn btn-dark" data-wa="wa.generic" href="https://wa.me/77770464141" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-wa"/></svg><span data-i18n="cta.btn1">Написать в WhatsApp</span></a>
+      <a class="cta-tel" href="tel:+77770464141"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>+7 777 046 4141</span></a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="foot grain">
+  <div class="wrap">
+    <div class="foot-cols">
+      <div>
+        <div class="foot-brand"><img src="assets/img/logo.png" width="35" height="44" alt=""><b class="brand-word">GUSTO</b></div>
+        <p class="foot-tag" data-i18n="foot.tag">Сервис скидок для ресторанов и кафе</p>
+      </div>
+      <div>
+        <h2 data-i18n="foot.c.h">Контакты</h2>
+        <ul>
+          <li class="t" data-i18n="foot.city">Алматы, Казахстан</li>
+          <li><a class="fl" href="tel:+77770464141">+7 777 046 4141</a></li>
+          <li><a class="fl" data-wa="wa.generic" href="https://wa.me/77770464141" target="_blank" rel="noopener">WhatsApp</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 data-i18n="foot.n.h">Разделы</h2>
+        <ul>
+          <li><a class="fl" href="#how" data-i18n="nav.how">Как это работает</a></li>
+          <li><a class="fl" href="#plans" data-i18n="nav.plans">Тарифы</a></li>
+          <li><a class="fl" href="#venues" data-i18n="nav.venues">Заведения</a></li>
+          <li><a class="fl" href="#business" data-i18n="nav.business">Бизнесу</a></li>
+          <li><a class="fl" href="#faq" data-i18n="nav.faq">Вопросы</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2 data-i18n="foot.d.h">Документы</h2>
+        <ul>
+          <li class="t" data-i18n="foot.d1">Пользовательское соглашение</li>
+          <li class="t" data-i18n="foot.d2">Политика конфиденциальности</li>
+          <li class="t" data-i18n="foot.d3">Правила подписки</li>
+          <li class="t" data-i18n="foot.d4">Правила использования GUSTO</li>
+          <li class="t" data-i18n="foot.d5">Правила возврата</li>
+          <li class="t" data-i18n="foot.app">Приложение для iOS и Android — скоро</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="wrap foot-wm-row"><div class="wm-h1" aria-hidden="true"><span class="wm" id="wmFoot">GUSTO</span></div></div>
+  <div class="wrap"><p class="foot-legal" data-i18n="foot.legal">© 2026 GUSTO. Алматы, Казахстан.</p></div>
+</footer>
+
+<!-- ============ WHATSAPP FAB ============ -->
+<a class="wa touch-manipulation select-none" id="waFab" href="https://wa.me/77770464141" target="_blank" rel="noopener" aria-label="Написать в WhatsApp" data-i18n-attr="aria-label:wa.label" data-wa="wa.generic">
+  <span class="wa-ring r1"></span><span class="wa-ring r2"></span><span class="wa-ring r3"></span>
+  <span class="wa-core"><svg aria-hidden="true" focusable="false"><use href="#i-wa"/></svg></span>
+  <span class="wa-tip" data-i18n="wa.label">Написать в WhatsApp</span>
+</a>
+
+<script>
+(() => {
+'use strict';
+const WA = '77770464141';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ======================= i18n: [ru, kk] ======================= */
+const T = {
+'meta.title': ['GUSTO — сервис скидок для ресторанов и кафе в Алматы', 'GUSTO — Алматыдағы мейрамханалар мен кафелерге арналған жеңілдік сервисі'],
+'meta.desc': ['GUSTO — единый абонемент на бизнес-ланчи: один QR-код — множество ресторанов и кафе Алматы. Тарифы от 9 990 ₸.', 'GUSTO — бизнес-ланчқа арналған бірыңғай абонемент: бір QR-код арқылы Алматыдағы көптеген мейрамханалар мен кафеде түскі ас. Тарифтер 9 990 ₸-ден бастап.'],
+'skip': ['К содержимому', 'Мазмұнға өту'],
+'nav.label': ['Главное меню', 'Негізгі мәзір'],
+'nav.how': ['Как это работает', 'Қалай жұмыс істейді'],
+'nav.plans': ['Тарифы', 'Тарифтер'],
+'nav.venues': ['Заведения', 'Мекемелер'],
+'nav.business': ['Бизнесу', 'Бизнеске'],
+'nav.faq': ['Вопросы', 'Сұрақтар'],
+'nav.cta': ['Подключиться', 'Қосылу'],
+'menu.label': ['Меню', 'Мәзір'],
+'menu.open': ['Открыть меню', 'Мәзірді ашу'],
+'menu.close': ['Закрыть меню', 'Мәзірді жабу'],
+'lang.label': ['Язык', 'Тіл'],
+'hero.h1': ['GUSTO — сервис скидок для ресторанов и кафе', 'GUSTO — мейрамханалар мен кафелерге арналған жеңілдік сервисі'],
+'hero.lede': ['GUSTO — сервис скидок для ресторанов и кафе. Один абонемент, один QR-код — и бизнес-ланч в подключённых заведениях Алматы.', 'GUSTO — мейрамханалар мен кафелерге арналған жеңілдік сервисі. Бір абонемент, бір QR-код — Алматыдағы серіктес мекемелерде бизнес-ланч.'],
+'hero.cta1': ['Выбрать тариф', 'Тарифті таңдау'],
+'hero.cta2': ['Как это работает', 'Қалай жұмыс істейді'],
+'img.terrace': ['Терраса с плетёной мебелью, бирюзовыми подушками и плетёными светильниками', 'Өрілген жиһазы, көгілдір жастықтары және өрілген шамдары бар терраса'],
+'img.hall': ['Зал ресторана с тёплым золотым светом и подвесными светильниками', 'Жылы алтын жарықты, аспалы шамдары бар мейрамхана залы'],
+'img.taraz': ['Зал с потолком в казахском орнаменте', 'Төбесі қазақ оюымен безендірілген зал'],
+'img.canteen': ['Гости обедают в просторном светлом зале', 'Қонақтар кең әрі жарық залда түскі ас ішуде'],
+'img.garden': ['Ресторан с панорамными окнами в сад', 'Бақшаға қараған панорамалық терезелері бар мейрамхана'],
+'img.velvet': ['Ресторан с синими бархатными креслами и мраморным полом', 'Көк барқыт креслолары мен мәрмәр едені бар мейрамхана'],
+'img.palms': ['Просторный зал ресторана с пальмами и светлыми арками', 'Пальмалары мен жарық аркалары бар кең мейрамхана залы'],
+'img.tower': ['Современный ресторан с панорамными окнами на город', 'Қалаға қараған панорамалық терезелері бар заманауи мейрамхана'],
+'img.mural': ['Кафе с арочными нишами, росписью на стене и плетёными светильниками', 'Аркалы ойықтары, қабырға суреті және өрілген шамдары бар кафе'],
+'how.h': ['Как это работает', 'Қалай жұмыс істейді'],
+'how.lead': ['Подписку вы оплачиваете раз в месяц. Дальше достаточно показать QR-код.', 'Абонементті айына бір рет төлейсіз. Әрі қарай QR-кодты көрсету жеткілікті.'],
+'s1.t': ['Выберите тариф.', 'Тарифті таңдаңыз.'],
+'s1.p': ['От 6 до 20 ланчей в месяц. Оплата банковской картой, а где доступно — через Apple Pay и Google Pay.', 'Айына 6-дан 20-ға дейін ланч. Банк картасымен төлеңіз, ал қолжетімді жерде — Apple Pay және Google Pay арқылы.'],
+'s2.t': ['Найдите заведение.', 'Мекемені табыңыз.'],
+'s2.p': ['Карта и фильтры по кухне, рейтингу и расстоянию. В меню GUSTO — суп, горячее, салат и напиток.', 'Карта және тағам түрі, рейтинг пен қашықтық бойынша сүзгілер. GUSTO мәзірінде — сорпа, ыстық тағам, салат және сусын.'],
+'s3.t': ['Нажмите «Получить ланч».', '«Ланч алу» батырмасын басыңыз.'],
+'s3.p': ['Приложение создаёт временный одноразовый QR-код. Он быстро обновляется, поэтому скриншот не сработает.', 'Қолданба уақытша бір реттік QR-код жасайды. Ол жылдам жаңарады, сондықтан скриншот жұмыс істемейді.'],
+'s4.t': ['Покажите QR — и приятного аппетита.', 'QR көрсетіңіз — ас болсын!'],
+'s4.p': ['Сотрудник сканирует код и подтверждает выдачу. Ланч списывается с остатка — на экране «Осталось: 7/12».', 'Қызметкер кодты сканерлеп, ланчты беруді растайды. Ланч қалдықтан шегеріледі — экранда «Қалды: 7/12».'],
+'pass.demo': ['Демо', 'Демо'],
+'pass.sub': ['Абонемент LUNCH', 'LUNCH абонементі'],
+'pass.left': ['Осталось: {a}/{b} ланчей', 'Қалды: {a}/{b} ланч'],
+'pass.valid': ['Действует до 05.11.2026', '05.11.2026 дейін жарамды'],
+'pass.btn': ['Получить ланч', 'Ланч алу'],
+'pass.timer': ['Обновится через {t}', '{t} кейін жаңарады'],
+'pass.note': ['QR-код создан', 'QR-код жасалды'],
+'pass.qrlabel': ['Демонстрационный динамический QR-код', 'Демонстрациялық динамикалық QR-код'],
+'pass.cap': ['Так выглядит пропуск в приложении. Код демонстрационный и обновляется каждые 30 секунд.', 'Қолданбадағы рұқсат осылай көрінеді. Код демонстрациялық және әр 30 секунд сайын жаңарады.'],
+'plans.h': ['Тарифы', 'Тарифтер'],
+'plans.lead': ['Выберите тариф — и сразу увидите, сколько сэкономите.', 'Тарифті таңдаңыз — қанша үнемдейтініңізді бірден көресіз.'],
+'plans.group': ['Выбор тарифа', 'Тарифті таңдау'],
+'plan.visits': ['{n} ланчей в месяц', 'айына {n} ланч'],
+'plan.per': ['≈ {n} ₸ за ланч', 'бір ланч ≈ {n} ₸'],
+'plan.main': ['Основной', 'Негізгі'],
+'plan.corp.price': ['Индивидуально', 'Жеке'],
+'plan.corp.note': ['Для компаний: сотрудники, лимиты, отчёты', 'Компаниялар үшін: қызметкерлер, лимиттер, есептер'],
+'plans.rules': ['Срок действия — 30 дней. Один основной ланч в день. В ланч входят суп, горячее, салат и напиток.', 'Жарамдылық мерзімі — 30 күн. Күніне бір негізгі ланч. Ланчқа сорпа, ыстық тағам, салат және сусын кіреді.'],
+'calc.h': ['Ваша выгода', 'Сіздің пайдаңыз'],
+'calc.avg': ['Средняя цена обычного ланча', 'Қарапайым ланчтың орташа бағасы'],
+'calc.sub': ['Стоимость подписки', 'Абонемент құны'],
+'calc.food': ['Полученная стоимость еды', 'Алынған тамақ құны'],
+'calc.ben': ['Ваша выгода', 'Сіздің пайдаңыз'],
+'calc.note.ok': ['Выгода — разница между стоимостью еды по обычным ценам и ценой подписки.', 'Пайда — тамақтың қарапайым бағамен құны мен абонемент бағасының айырмасы.'],
+'calc.note.low': ['При таком чеке подписка пока не окупается: выгода начинается от {n} ₸ за ланч.', 'Мұндай орташа чекте абонемент әлі ақталмайды: пайда бір ланч үшін {n} ₸-дан басталады.'],
+'calc.cta': ['Подключить {plan} в WhatsApp', '{plan} тарифін WhatsApp арқылы қосу'],
+'wa.plan': ['Здравствуйте! Хочу подключить тариф {plan} в GUSTO.', 'Сәлеметсіз бе! GUSTO-да {plan} тарифін қосқым келеді.'],
+'wa.rest': ['Здравствуйте! Хочу подключить своё заведение к GUSTO.', 'Сәлеметсіз бе! Өз мекемемді GUSTO-ға қосқым келеді.'],
+'wa.corp': ['Здравствуйте! Хочу обсудить GUSTO для нашей компании.', 'Сәлеметсіз бе! GUSTO-ны компаниямыз үшін талқылағым келеді.'],
+'wa.generic': ['Здравствуйте! Хочу узнать подробнее о GUSTO.', 'Сәлеметсіз бе! GUSTO туралы толығырақ білгім келеді.'],
+'wa.label': ['Написать в WhatsApp', 'WhatsApp-қа жазу'],
+'venues.h': ['Заведения на любой вкус', 'Әр талғамға лайық мекемелер'],
+'venues.tabs': ['Уровень заведения', 'Мекеме деңгейі'],
+'tier.std.t': ['Обычные рестораны и кафе', 'Қарапайым мейрамханалар мен кафелер'],
+'tier.std.d': ['Бизнес-ланч полностью входит в подписку. Никаких доплат.', 'Бизнес-ланч абонементке толық кіреді. Қосымша төлемсіз.'],
+'tier.std.p': ['Входит в подписку', 'Абонементке кіреді'],
+'tier.pre.t': ['Рестораны классом выше', 'Деңгейі жоғары мейрамханалар'],
+'tier.pre.d': ['Ланч доступен с небольшой доплатой, например Premium Lunch +700 ₸. Разницу вы оплачиваете сами.', 'Ланч шағын қосымша төлеммен қолжетімді, мысалы Premium Lunch +700 ₸. Айырманы өзіңіз төлейсіз.'],
+'tier.pre.p': ['Доплата, например, +700 ₸', 'Қосымша төлем, мысалы, +700 ₸'],
+'tier.eli.t': ['Премиальные рестораны', 'Элиталық мейрамханалар'],
+'tier.eli.d': ['Лучшие заведения города. Условия и доплата устанавливаются для каждого заведения отдельно.', 'Қаладағы үздік мекемелер. Шарттар мен қосымша төлем әр мекемеге жеке белгіленеді.'],
+'tier.eli.p': ['Доплата по условиям заведения', 'Қосымша төлем — мекеме шарттары бойынша'],
+'v.menu.h': ['В бизнес-ланч входит', 'Бизнес-ланчқа кіреді'],
+'v.m1': ['Суп', 'Сорпа'],
+'v.m2': ['Горячее', 'Ыстық тағам'],
+'v.m3': ['Салат', 'Салат'],
+'v.m4': ['Напиток', 'Сусын'],
+'v.cta1': ['Выбрать тариф', 'Тарифті таңдау'],
+'v.cta2': ['Подключить заведение', 'Мекемені қосу'],
+'biz.h': ['Для заведений и компаний', 'Мекемелер мен компаниялар үшін'],
+'rest.t': ['Заведениям: новые гости', 'Мекемелерге: жаңа қонақтар'],
+'rest.p': ['Подключитесь, создайте меню GUSTO и принимайте гостей по QR. За каждый подтверждённый ланч вы получаете выплату по своей ставке.', 'Қосылыңыз, GUSTO мәзірін жасаңыз және қонақтарды QR арқылы қабылдаңыз. Расталған әр ланч үшін өз мөлшерлемеңіз бойынша төлем аласыз.'],
+'rcalc.l': ['Уровень заведения', 'Мекеме деңгейі'],
+'rcalc.n': ['Подтверждённых ланчей в месяц', 'Айына расталған ланч саны'],
+'rcalc.out': ['Выплата за месяц', 'Айлық төлем'],
+'rcalc.note': ['Пример расчёта: ставка зависит от уровня заведения и согласуется индивидуально.', 'Есептеу мысалы: мөлшерлеме мекеме деңгейіне байланысты және жеке келісіледі.'],
+'rest.b1': ['Кабинет заведения со статистикой', 'Статистикасы бар мекеме кабинеті'],
+'rest.b2': ['Сканер QR для сотрудников', 'Қызметкерлерге арналған QR сканері'],
+'rest.b3': ['Прозрачные начисления и отчёты', 'Ашық есептеулер мен есептер'],
+'rest.b4': ['Допродажи: кофе, десерты, премиум-блюда', 'Қосымша сатылымдар: кофе, десерт, премиум тағам'],
+'rest.cta': ['Подключить заведение', 'Мекемені қосу'],
+'corp.t': ['Компаниям: питание сотрудников', 'Компанияларға: корпоративтік тамақтану'],
+'corp.p': ['Компания оплачивает GUSTO, а каждый сотрудник получает свои ланчи. Например, 500 сотрудников — по 20 ланчей каждому.', 'Компания GUSTO үшін төлейді, ал әр қызметкер өз ланчтарын алады. Мысалы, 500 қызметкер — әрқайсысына 20 ланчтан.'],
+'corp.b1': ['Рабочие дни и время, например Пн–Пт, 11:30–15:30', 'Жұмыс күндері мен уақыты, мысалы Дс–Жм, 11:30–15:30'],
+'corp.b2': ['Список заведений для сотрудников', 'Қызметкерлерге арналған мекемелер тізімі'],
+'corp.b3': ['Бюджет на сотрудника и лимиты ланчей', 'Қызметкерге арналған бюджет және ланч лимиті'],
+'corp.b4': ['Отчёты и история расходов', 'Есептер мен шығындар тарихы'],
+'corp.cta': ['Обсудить для компании', 'Компания үшін талқылау'],
+'inside.h': ['Всё нужное — внутри', 'Қажеттінің бәрі — ішінде'],
+'g1.h': ['Гостям', 'Қонақтарға'],
+'g1.i1': ['Карта заведений', 'Мекемелер картасы'], 'g1.i2': ['Меню GUSTO', 'GUSTO мәзірі'], 'g1.i3': ['Динамический QR', 'Динамикалық QR'],
+'g1.i4': ['Остаток ланчей', 'Ланч қалдығы'], 'g1.i5': ['История посещений', 'Бару тарихы'], 'g1.i6': ['Счётчик экономии', 'Үнемдеу есептегіші'],
+'g1.i7': ['Избранное', 'Таңдаулылар'], 'g1.i8': ['Отзывы и рейтинг', 'Пікірлер мен рейтинг'], 'g1.i9': ['Реферальные бонусы', 'Реферал бонустары'],
+'g2.h': ['Заведениям', 'Мекемелерге'],
+'g2.i1': ['Кабинет заведения', 'Мекеме кабинеті'], 'g2.i2': ['Сканер QR', 'QR сканері'], 'g2.i3': ['Меню GUSTO', 'GUSTO мәзірі'],
+'g2.i4': ['Статистика по гостям', 'Қонақтар статистикасы'], 'g2.i5': ['Начисления и выплаты', 'Есептеулер мен төлемдер'], 'g2.i6': ['Допродажи', 'Қосымша сатылымдар'], 'g2.i7': ['Отзывы гостей', 'Қонақ пікірлері'],
+'g3.h': ['Компаниям', 'Компанияларға'],
+'g3.i1': ['Сотрудники', 'Қызметкерлер'], 'g3.i2': ['Лимиты и бюджет', 'Лимиттер мен бюджет'], 'g3.i3': ['Покупка подписок', 'Абонементтер сатып алу'], 'g3.i4': ['Отчёты', 'Есептер'], 'g3.i5': ['История расходов', 'Шығындар тарихы'],
+'g4.h': ['Защита', 'Қорғаныс'],
+'g4.i1': ['Одноразовый QR', 'Бір реттік QR'], 'g4.i2': ['Быстрое обновление кода', 'Кодтың жылдам жаңаруы'], 'g4.i3': ['Проверка на сервере', 'Серверде тексеру'],
+'g4.i4': ['Геолокация', 'Геолокация'], 'g4.i5': ['Антифрод', 'Антифрод'], 'g4.i6': ['Журнал действий', 'Әрекеттер журналы'],
+'faq.h': ['Вопросы и ответы', 'Сұрақтар мен жауаптар'],
+'q1': ['Как работает GUSTO?', 'GUSTO қалай жұмыс істейді?'],
+'a1': ['Вы покупаете месячную подписку и получаете определённое количество бизнес-ланчей. В подключённом заведении нажимаете «Получить ланч», показываете одноразовый QR-код, и сотрудник выдаёт обед.', 'Сіз айлық абонемент сатып алып, бизнес-ланчтың белгілі санын аласыз. Серіктес мекемеде «Ланч алу» батырмасын басып, бір реттік QR-кодты көрсетесіз, ал қызметкер түскі асты береді.'],
+'q2': ['Сколько ланчей можно получить в день?', 'Күніне қанша ланч алуға болады?'],
+'a2': ['Основное правило — один ланч в день. Остаток по подписке всегда виден на главном экране, например «Осталось: 8/12».', 'Негізгі ереже — күніне бір ланч. Абонемент қалдығы бас экранда әрдайым көрінеді, мысалы «Қалды: 8/12».'],
+'q3': ['Что будет с неиспользованными ланчами?', 'Пайдаланылмаған ланчтар не болады?'],
+'a3': ['Перенос неиспользованных ланчей зависит от условий тарифа. Эти условия указаны в описании тарифа до оплаты.', 'Пайдаланылмаған ланчтарды көшіру тариф шарттарына байланысты. Бұл шарттар төлемге дейін тариф сипаттамасында көрсетіледі.'],
+'q4': ['Можно ли отключить автопродление?', 'Автоұзартуды өшіруге бола ма?'],
+'a4': ['Да. Автопродление подключается только с вашего явного согласия, а отключить его можно в разделе «Подписка» в приложении.', 'Иә. Автоұзарту тек сіздің нақты келісіміңізбен қосылады, ал оны қолданбадағы «Абонемент» бөлімінде өшіруге болады.'],
+'q5': ['Безопасна ли оплата и возможен ли возврат?', 'Төлем қауіпсіз бе және қайтару мүмкін бе?'],
+'a5': ['Оплата проходит через платёжного провайдера по его официальному API, данные банковских карт на серверах GUSTO не хранятся. Правила возврата соответствуют законодательству Республики Казахстан.', 'Төлем төлем провайдерінің ресми API-і арқылы өтеді, банк карталарының деректері GUSTO серверлерінде сақталмайды. Қайтару ережелері Қазақстан Республикасының заңнамасына сәйкес келеді.'],
+'q6': ['В каких городах работает GUSTO?', 'GUSTO қай қалаларда жұмыс істейді?'],
+'a6': ['Первый запуск — Алматы. Затем планируются Астана, Шымкент и другие города Казахстана.', 'Алғашқы іске қосу — Алматы. Одан кейін Астана, Шымкент және Қазақстанның басқа қалалары жоспарланған.'],
+'q7': ['Как подключить заведение или компанию?', 'Мекемені немесе компанияны қалай қосамын?'],
+'a7': ['Напишите нам в WhatsApp или позвоните по номеру +7 777 046 4141. Мы подключим заведение, поможем создать меню GUSTO и расскажем, как принимать гостей по QR.', 'Бізге WhatsApp-қа жазыңыз немесе +7 777 046 4141 нөміріне қоңырау шалыңыз. Біз мекемені қосамыз, GUSTO мәзірін жасауға көмектесеміз және қонақтарды QR арқылы қалай қабылдау керектігін түсіндіреміз.'],
+'cta.h1': ['Покажите QR —', 'QR көрсетіңіз —'],
+'cta.h2': ['обед оплачен.', 'ас төленген.'],
+'cta.p': ['Напишите нам — поможем выбрать тариф, подключить заведение или компанию.', 'Бізге жазыңыз — тариф таңдауға, мекемені немесе компанияны қосуға көмектесеміз.'],
+'cta.btn1': ['Написать в WhatsApp', 'WhatsApp-қа жазу'],
+'foot.tag': ['Сервис скидок для ресторанов и кафе', 'Мейрамханалар мен кафелерге арналған жеңілдік сервисі'],
+'foot.c.h': ['Контакты', 'Байланыс'],
+'foot.city': ['Алматы, Казахстан', 'Алматы, Қазақстан'],
+'foot.n.h': ['Разделы', 'Бөлімдер'],
+'foot.d.h': ['Документы', 'Құжаттар'],
+'foot.d1': ['Пользовательское соглашение', 'Пайдаланушы келісімі'],
+'foot.d2': ['Политика конфиденциальности', 'Құпиялылық саясаты'],
+'foot.d3': ['Правила подписки', 'Абонемент ережелері'],
+'foot.d4': ['Правила использования GUSTO', 'GUSTO пайдалану ережелері'],
+'foot.d5': ['Правила возврата', 'Қайтару ережелері'],
+'foot.app': ['Приложение для iOS и Android — скоро', 'iOS және Android қолданбасы — жақында'],
+'foot.legal': ['© 2026 GUSTO. Алматы, Казахстан.', '© 2026 GUSTO. Алматы, Қазақстан.']
+};
+
+let lang = 'ru';
+try { const s = localStorage.getItem('gusto-lang'); if (s === 'ru' || s === 'kk') lang = s; else if ((navigator.language || '').toLowerCase().startsWith('kk')) lang = 'kk'; } catch (e) {}
+const qp = new URLSearchParams(location.search).get('lang'); if (qp === 'ru' || qp === 'kk') lang = qp;
+
+const t = (k, v) => { const e = T[k]; let s = e ? e[lang === 'kk' ? 1 : 0] : k; if (v) s = s.replace(/\{(\w+)\}/g, (_, n) => v[n]); return s; };
+const fmt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const money = n => `${fmt(n)} ₸`;
+const moneyEl = (el, n) => { el.innerHTML = `${fmt(n)}<span class="cur">₸</span>`; };
+const wa = text => `https://wa.me/${WA}?text=${encodeURIComponent(text)}`;
+
+/* ======================= state ======================= */
+const PLANS = { MINI: { price: 9990, visits: 6 }, LUNCH: { price: 19990, visits: 12 }, PRO: { price: 29990, visits: 20 } };
+let plan = 'LUNCH', avg = 2320, rate = 1100, cnt = 100, tier = 'std';
+
+/* ======================= renderers ======================= */
+function paintRange(el) { const p = (el.value - el.min) / (el.max - el.min) * 100; el.style.setProperty('--p', p + '%'); }
+const tweens = new WeakMap();
+function tweenMoney(el, to) {
+  const from = tweens.get(el) ?? to;
+  tweens.set(el, to);
+  if (reduce || from === to) { el.textContent = money(to); return; }
+  const t0 = performance.now(), d = 420;
+  cancelAnimationFrame(el._raf);
+  const step = now => { const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3); el.textContent = money(from + (to - from) * e); if (k < 1) el._raf = requestAnimationFrame(step); };
+  el._raf = requestAnimationFrame(step);
+}
+function renderPlans() {
+  $$('#planList [data-plan]').forEach(b => {
+    const p = PLANS[b.dataset.plan];
+    moneyEl($('[data-price]', b), p.price);
+    $('[data-visits]', b).textContent = t('plan.visits', { n: p.visits });
+    $('[data-per]', b).textContent = t('plan.per', { n: fmt(Math.round(p.price / p.visits)) });
+    const on = b.dataset.plan === plan; b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1;
+  });
+}
+function renderCalc() {
+  const p = PLANS[plan], food = p.visits * avg, ben = food - p.price;
+  moneyEl($('#avgOut'), avg);
+  $('#cSub').textContent = money(p.price);
+  $('#cFood').textContent = money(food);
+  tweenMoney($('#cBen'), Math.max(0, ben));
+  const be = Math.ceil(p.price / p.visits);
+  $('#cNote').textContent = ben >= 0 ? t('calc.note.ok') : t('calc.note.low', { n: fmt(be) });
+  $('#cCtaT').textContent = t('calc.cta', { plan });
+  $('#cCta').href = wa(t('wa.plan', { plan }));
+  paintRange($('#avg'));
+}
+function renderTier() {
+  const m = { std: 'standard', pre: 'premium', eli: 'elite' };
+  $('#vTitle').textContent = t(`tier.${tier}.t`);
+  $('#vDesc').textContent = t(`tier.${tier}.d`);
+  $('#vPrice').textContent = t(`tier.${tier}.p`);
+  $$('.tab').forEach(b => { const on = b.dataset.tier === tier; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
+  $('#vPanel').setAttribute('aria-labelledby', `tab-${tier}`);
+  $$('.v-frame .tr').forEach(f => f.classList.toggle('on', f.classList.contains('ph-' + m[tier])));
+}
+function renderRest() {
+  $('#cntOut').textContent = fmt(cnt);
+  $('#rcSum').textContent = money(cnt * rate);
+  $('#rcForm').textContent = `${fmt(cnt)} × ${money(rate)}`;
+  $$('#rcalc [data-rate]').forEach(b => { const on = +b.dataset.rate === rate; b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1; });
+  paintRange($('#cnt'));
+}
+
+/* ======================= apply language ======================= */
+function apply() {
+  document.documentElement.lang = lang;
+  document.title = t('meta.title');
+  const md = $('meta[name="description"]'); if (md) md.content = t('meta.desc');
+  const og = $('meta[property="og:title"]'); if (og) og.content = t('meta.title');
+  $$('[data-i18n]').forEach(el => { const k = el.dataset.i18n; if (T[k]) el.textContent = t(k); });
+  $$('[data-i18n-attr]').forEach(el => el.dataset.i18nAttr.split(';').forEach(pair => { const [a, k] = pair.split(':'); if (T[k]) el.setAttribute(a, t(k)); }));
+  $$('.lang-b').forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === lang));
+  $$('[data-wa]').forEach(a => { a.href = wa(t(a.dataset.wa)); });
+  renderPlans(); renderCalc(); renderTier(); renderRest(); passText(); fitAll();
+}
+function setLang(l) {
+  if (l === lang) return; lang = l;
+  try { localStorage.setItem('gusto-lang', l); } catch (e) {}
+  apply();
+}
+document.addEventListener('click', e => { const b = e.target.closest('.lang-b'); if (b) setLang(b.dataset.lang); });
+
+/* ======================= menu ======================= */
+const menu = $('#menu'), burger = $('#burger'), root = document.documentElement;
+let lastFocus = null;
+function openMenu() { lastFocus = document.activeElement; menu.classList.add('open'); menu.setAttribute('aria-hidden', 'false'); root.classList.add('menu-open'); burger.setAttribute('aria-expanded', 'true'); setTimeout(() => $('#menuClose').focus({ preventScroll: true }), 60); }
+function closeMenu(restore = true) { menu.classList.remove('open'); menu.setAttribute('aria-hidden', 'true'); root.classList.remove('menu-open'); burger.setAttribute('aria-expanded', 'false'); if (restore && lastFocus) lastFocus.focus?.({ preventScroll: true }); }
+burger.addEventListener('click', openMenu);
+$('#menuClose').addEventListener('click', () => closeMenu());
+menu.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeMenu(false); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+  if (e.key === 'Tab' && menu.classList.contains('open')) {
+    const f = $$('a[href],button', menu).filter(x => x.offsetParent !== null); if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+matchMedia('(min-width:1024px)').addEventListener('change', m => { if (m.matches) closeMenu(false); });
+
+/* header solid after scroll */
+const hdr = $('#hdr');
+const onScroll = () => hdr.classList.toggle('is-solid', scrollY > 12);
+addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+/* ======================= plans / calc / tiers / rest ======================= */
+function arrowNav(list, items, pick) {
+  list.addEventListener('keydown', e => {
+    const keys = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }; if (!(e.key in keys)) return;
+    e.preventDefault();
+    const arr = items(); const i = arr.findIndex(x => x === document.activeElement); const n = arr[(i + keys[e.key] + arr.length) % arr.length];
+    n.focus(); pick(n);
+  });
+}
+const planBtns = () => $$('#planList [data-plan]');
+$('#planList').addEventListener('click', e => { const b = e.target.closest('[data-plan]'); if (!b) return; plan = b.dataset.plan; renderPlans(); renderCalc(); });
+arrowNav($('#planList'), planBtns, b => { plan = b.dataset.plan; renderPlans(); renderCalc(); });
+$('#avg').addEventListener('input', e => { avg = +e.target.value; renderCalc(); });
+
+const tabBtns = () => $$('.tab');
+$('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b) return; tier = b.dataset.tier; renderTier(); });
+arrowNav($('.tabs'), tabBtns, b => { tier = b.dataset.tier; renderTier(); });
+
+const rateBtns = () => $$('#rcalc [data-rate]');
+$('#rcalc .rc-lv').addEventListener('click', e => { const b = e.target.closest('[data-rate]'); if (!b) return; rate = +b.dataset.rate; renderRest(); });
+arrowNav($('#rcalc .rc-lv'), rateBtns, b => { rate = +b.dataset.rate; renderRest(); });
+$('#cnt').addEventListener('input', e => { cnt = +e.target.value; renderRest(); });
+
+/* ======================= LIVE PASS: dynamic QR ======================= */
+const LEFT = 8, TOTAL = 12, TTL = 30;
+let qrEnd = 0;
+const pips = $('#pips'); for (let i = 0; i < TOTAL; i++) { const s = document.createElement('i'); if (i < LEFT) s.className = 'on'; pips.appendChild(s); }
+const hex = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(16).padStart(2, '0')).join('');
+function sig(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16).padStart(8, '0'); }
+function fallbackModules(n, seed) {
+  const m = Array.from({ length: n }, () => Array(n).fill(false)); let x = parseInt(seed.slice(0, 8), 16) || 1;
+  const rnd = () => { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; return (x >>> 0) / 4294967296; };
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) m[r][c] = rnd() > .52;
+  const finder = (r0, c0) => { for (let r = -1; r <= 7; r++) for (let c = -1; c <= 7; c++) { const rr = r0 + r, cc = c0 + c; if (rr < 0 || cc < 0 || rr >= n || cc >= n) continue; m[rr][cc] = (r >= 0 && r <= 6 && c >= 0 && c <= 6) && (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)); } };
+  finder(0, 0); finder(0, n - 7); finder(n - 7, 0); return m;
+}
+function drawQR() {
+  const now = Math.floor(Date.now() / 1000), op = hex(4);
+  const body = `GUSTO|PASS|op=${op}|plan=LUNCH|user=****1234|t=${now}|exp=${now + TTL}`;
+  const payload = `${body}|sig=${sig(body + op)}`;
+  let n, dark;
+  try { const q = window.qrcode(0, 'M'); q.addData(payload); q.make(); n = q.getModuleCount(); dark = (r, c) => q.isDark(r, c); }
+  catch (e) { n = 33; const m = fallbackModules(n, op); dark = (r, c) => m[r][c]; }
+  let d = ''; for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (dark(r, c)) d += `M${c} ${r}h1v1h-1z`;
+  const svg = $('#qr'); svg.setAttribute('viewBox', `-2 -2 ${n + 4} ${n + 4}`); svg.innerHTML = `<path d="${d}" fill="#0B0B0B"/>`;
+}
+function restartBar() { const b = $('#bar'); b.style.animation = 'none'; void b.offsetWidth; b.style.animation = ''; }
+function newQR(announce) {
+  drawQR(); qrEnd = Date.now() + TTL * 1000; restartBar();
+  const tile = $('#qrTile'); tile.classList.remove('pop'); void tile.offsetWidth; tile.classList.add('pop');
+  if (announce) $('#passNote').textContent = t('pass.note') + ' ' + Date.now();
+  passText();
+}
+function passText() {
+  const rem = Math.max(0, Math.ceil((qrEnd - Date.now()) / 1000));
+  $('#timer').textContent = t('pass.timer', { t: `0:${String(rem).padStart(2, '0')}` });
+  $('#leftLab').textContent = t('pass.left', { a: LEFT, b: TOTAL });
+  $('#left').textContent = `${LEFT}/${TOTAL}`;
+  if (reduce) $('#bar').style.transform = `scaleX(${rem / TTL})`;
+}
+$('#getLunch').addEventListener('click', () => newQR(true));
+setInterval(() => { if (qrEnd && Date.now() >= qrEnd) newQR(false); else passText(); }, 500);
+
+/* ======================= wordmark fit ======================= */
+function fit(el) {
+  const box = el.parentElement; if (!box) return;
+  box.style.fontSize = '100px';
+  const w = el.offsetWidth, bw = box.clientWidth; if (!w || !bw) return;
+  box.style.fontSize = (100 * bw / w * 0.992) + 'px';
+}
+function fitAll() { $$('.wm').forEach(fit); }
+addEventListener('resize', () => { clearTimeout(fitAll._t); fitAll._t = setTimeout(fitAll, 80); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
+
+/* ======================= boot ======================= */
+apply();
+addEventListener('DOMContentLoaded', () => { newQR(false); fitAll(); });
+
+/* ======================= motion (GSAP) ======================= */
+addEventListener('load', () => {
+  fitAll();
+  if (reduce || !window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ ignoreMobileResize: true });
+
+  const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+  tl.from('.hero-ph .tr', { y: 36, opacity: 0, duration: 1.3, stagger: .12, clearProps: 'transform,opacity' })
+    .from('#wm', { yPercent: 105, duration: 1.4, clearProps: 'transform' }, .25)
+    .from('.lede, .hero-cta > *', { y: 22, opacity: 0, duration: 1, stagger: .08, clearProps: 'transform,opacity' }, .5);
+
+  gsap.to('#wm', { scale: .9, transformOrigin: '50% 100%', ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+  gsap.fromTo('#wmFoot', { scale: .92, transformOrigin: '50% 100%' }, { scale: 1, ease: 'none', scrollTrigger: { trigger: '.foot', start: 'top bottom', end: 'bottom bottom', scrub: true } });
+
+  $$('[data-reveal]').forEach(el => gsap.from(el, { y: 34, opacity: 0, duration: 1.1, ease: 'expo.out', clearProps: 'transform,opacity', scrollTrigger: { trigger: el, start: 'top 90%', once: true } }));
+
+  gsap.matchMedia().add('(min-width: 900px)', () => {
+    $$('.biz .tr img, .inside-ph img').forEach(img => gsap.fromTo(img, { yPercent: -5 }, { yPercent: 5, ease: 'none', scrollTrigger: { trigger: img.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } }));
+  });
+
+  document.fonts && document.fonts.ready.then(() => ScrollTrigger.refresh());
+});
+})();
+</script>
+</body>
+</html>

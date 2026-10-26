@@ -1,0 +1,27 @@
+node_modules/
+temporary screenshots/
+.taste-skill/
+*.pyc
+__pycache__/
+Photo/
+photo/
+shots.mjs
+probe.mjs
+probe2.mjs
+flow.mjs
+/logo.png
+/CLAUDE.md
+/PRODUCT.md
+/SKILL.md
+/SKILL s.md
+/README.md
+/core.py
+/design_system.py
+/search.py
+/plugin.json
+/data/
+/.impeccable/
+*.pdf
+probe.mjs
+probe2.mjs
+flow.mjs
