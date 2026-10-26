@@ -105,20 +105,21 @@ img{max-width:100%}
 .cur{font-weight:500; font-size:.66em; margin-left:.1em; letter-spacing:0}
 
 /* ============ BUTTONS ============ */
-.btn{--bg:var(--gold); --bg-hi:var(--gold-hi); --fg:var(--black); --sh:var(--sh-gold);
+.btn{--bg:var(--gold); --fg:var(--black); --sh:var(--sh-gold); --hov:.26;
   position:relative; isolation:isolate; display:inline-flex; align-items:center; justify-content:center; gap:.6em;
-  min-height:52px; padding:0 30px; border:0; border-radius:999px; color:var(--fg);
+  min-height:52px; padding:0 30px; border:0; border-radius:999px; color:var(--fg); background:var(--bg);
   font:600 1rem/1 var(--f-t); letter-spacing:.01em; text-decoration:none; white-space:nowrap; cursor:pointer;
   transition:transform .5s var(--ease)}
-.btn::before,.btn::after{content:""; position:absolute; inset:0; border-radius:inherit; z-index:-1}
-.btn::before{background:var(--bg)}
-.btn::after{background:var(--bg-hi); box-shadow:var(--sh); opacity:0; transition:opacity .35s var(--ease)}
+.btn::before,.btn::after{content:""; position:absolute; inset:0; border-radius:inherit; z-index:-1; pointer-events:none; opacity:0; transition:opacity .35s var(--ease)}
+.btn::before{box-shadow:var(--sh)}
+.btn::after{background:#fff}
 .btn .ic{transition:transform .45s var(--ease)}
-.btn:focus-visible::after{opacity:1}
-@media (hover:hover){.btn:hover{transform:translateY(-2px)} .btn:hover::after{opacity:1} .btn:hover .ic{transform:translateX(3px)}}
+.btn:focus-visible::before{opacity:1}
+.btn:focus-visible::after{opacity:var(--hov)}
+@media (hover:hover){.btn:hover{transform:translateY(-2px)} .btn:hover::before{opacity:1} .btn:hover::after{opacity:var(--hov)} .btn:hover .ic{transform:translateX(3px)}}
 .btn:active{transform:translateY(0) scale(.98)}
-.btn-ghost{--bg:rgba(255,255,255,.12); --bg-hi:rgba(255,255,255,.22); --fg:var(--white); --sh:0 12px 30px -12px rgba(0,0,0,.5)}
-.btn-dark{--bg:var(--black); --bg-hi:var(--graphite); --fg:var(--white); --sh:var(--sh-dark)}
+.btn-ghost{--bg:rgba(255,255,255,.12); --fg:var(--white); --sh:0 12px 30px -12px rgba(0,0,0,.5); --hov:.14}
+.btn-dark{--bg:var(--black); --fg:var(--white); --sh:var(--sh-dark); --hov:.16}
 .btn-block{width:100%; white-space:normal; text-align:center; line-height:1.25; padding-block:14px}
 
 /* ============ HEADER ============ */
@@ -218,7 +219,7 @@ img{max-width:100%}
 }
 .pass-wrap{display:grid; gap:16px; justify-items:center}
 .pass{position:relative; isolation:isolate; width:100%; max-width:420px; padding:24px; border-radius:34px; color:var(--white); overflow:hidden;
-  background:radial-gradient(120% 70% at 100% 0%,rgba(212,175,55,.30),transparent 60%),radial-gradient(90% 60% at 0% 100%,rgba(212,175,55,.15),transparent 65%),linear-gradient(160deg,#202020,#0B0B0B 62%);
+  background-color:#0B0B0B; background-image:radial-gradient(120% 70% at 100% 0%,rgba(212,175,55,.30),rgba(212,175,55,0) 60%),radial-gradient(90% 60% at 0% 100%,rgba(212,175,55,.15),rgba(212,175,55,0) 65%),linear-gradient(160deg,#202020,#0B0B0B 62%);
   box-shadow:0 2px 6px rgba(11,11,11,.2), 0 28px 60px -18px rgba(11,11,11,.55), 0 64px 110px -42px rgba(212,175,55,.4)}
 .pass::after{content:""; position:absolute; inset:0; z-index:-1; opacity:.07; pointer-events:none;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
@@ -405,7 +406,7 @@ input[type=range]::-moz-range-thumb{width:20px; height:20px; border-radius:50%; 
 /* ============ WHATSAPP FAB ============ */
 .wa{position:fixed; right:calc(22px + env(safe-area-inset-right)); bottom:calc(22px + env(safe-area-inset-bottom)); z-index:45; width:62px; height:62px; display:grid; place-items:center; border-radius:50%; text-decoration:none}
 .wa-core{position:relative; z-index:2; width:62px; height:62px; display:grid; place-items:center; border-radius:50%; background:#25D366; color:#fff;
-  box-shadow:0 0 0 3px var(--black), 0 0 0 5px var(--gold), 0 10px 22px -4px rgba(37,211,102,.55), 0 22px 40px -10px rgba(212,175,55,.5);
+  box-shadow:0 0 0 3px var(--black), 0 0 0 5px var(--gold), 0 12px 24px -8px rgba(0,0,0,.6);
   transform-origin:50% 62%; animation:wa-shake 5.5s var(--ease) infinite; transition:transform .45s var(--spring)}
 @media (hover:hover){.wa:hover .wa-core{transform:scale(1.08)}}
 .wa:active .wa-core{transform:scale(.94)}
@@ -519,7 +520,7 @@ input[type=range]::-moz-range-thumb{width:20px; height:20px; border-radius:50%; 
     </div>
   </div>
   <div class="wrap wm-row">
-    <h1 class="wm-h1"><span class="wm" id="wm" aria-hidden="true">GUSTO</span><span class="sr-only" data-i18n="hero.h1">GUSTO — сервис скидок для ресторанов и кафе</span></h1>
+    <h1 class="wm-h1"><span class="wm" id="wm">GUSTO</span></h1>
   </div>
 </section>
 
@@ -816,7 +817,6 @@ const T = {
 'menu.open': ['Открыть меню', 'Мәзірді ашу'],
 'menu.close': ['Закрыть меню', 'Мәзірді жабу'],
 'lang.label': ['Язык', 'Тіл'],
-'hero.h1': ['GUSTO — сервис скидок для ресторанов и кафе', 'GUSTO — мейрамханалар мен кафелерге арналған жеңілдік сервисі'],
 'hero.lede': ['GUSTO — сервис скидок для ресторанов и кафе. Один абонемент, один QR-код — и бизнес-ланч в подключённых заведениях Алматы.', 'GUSTO — мейрамханалар мен кафелерге арналған жеңілдік сервисі. Бір абонемент, бір QR-код — Алматыдағы серіктес мекемелерде бизнес-ланч.'],
 'hero.cta1': ['Выбрать тариф', 'Тарифті таңдау'],
 'hero.cta2': ['Как это работает', 'Қалай жұмыс істейді'],
